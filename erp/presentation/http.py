@@ -1,5 +1,5 @@
 """HTTP routes and response formatting; business commands are injected."""
-import os, json, hashlib
+import os, json, hashlib, logging
 from http.server import SimpleHTTPRequestHandler
 from http.cookies import SimpleCookie
 from urllib.parse import urlparse, parse_qs
@@ -63,7 +63,12 @@ class HttpHandler(SimpleHTTPRequestHandler):
             try:
                 self.services.repository.read_serialized()
                 return self.respond(200,{'status':'ready'})
-            except Exception: return self.respond(503,{'status':'unavailable'})
+            except Exception as error:
+                # Never log exception messages: database errors can contain credentials or customer data.
+                logging.getLogger(__name__).warning(
+                    'Readiness storage error: type=%s sqlstate=%s',
+                    type(error).__name__, getattr(error, 'sqlstate', None) or 'none')
+                return self.respond(503,{'status':'unavailable'})
         if path in ['/api/public/catalog','/api/public/trailers']:
             branch=parse_qs(urlparse(self.path).query).get('branch',['Potosí'])[0]
             try:
