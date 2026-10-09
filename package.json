@@ -1,0 +1,24 @@
+{
+  "name": "universal-cinema-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Frontend tooling; Python continues to serve the application.",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc && node scripts/build_frontend.mjs",
+    "lint": "eslint src --ext .js && node scripts/check_frontend_architecture.mjs && python scripts/check_architecture.py",
+    "test": "vitest run",
+    "test:e2e": "node tests/e2e.cjs"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "eslint": "10.12.0",
+    "playwright": "1.63.0",
+    "rolldown": "1.2.13",
+    "typescript": "7.0.2",
+    "vitest": "5.0.3"
+  },
+  "dependencies": {
+    "zod": "4.6.5"
+  }
+}

@@ -1,0 +1,4 @@
+# Servidor de producción Linux (el inicio local Windows sigue usando server.py).
+gunicorn==26.2.0; sys_platform != "win32"
+psycopg[binary]==3.3.6
+psycopg-pool==3.3.2

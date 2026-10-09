@@ -1,0 +1,49 @@
+# Datos de operación, biométricos, respaldos y archivos generados.
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+*.dump
+*.backup
+*.xlsx
+*.xls
+*.csv
+*.zip
+backups/
+uploads/
+tmp/
+output/
+
+# Secretos locales; la plantilla es la única excepción.
+.env
+.env.*
+!.env.example
+secrets/
+.secrets/
+*.pem
+*.key
+*users*.json
+
+# Entornos, cachés y configuración personal.
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.codex/
+.agents/
+
+# Frontend development tooling.
+node_modules/
+.build/
+test-results/
+playwright-report/
+*.tsbuildinfo

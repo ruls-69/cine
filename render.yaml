@@ -1,0 +1,37 @@
+# Plantilla: no crea recursos hasta que se importa y confirma en Render.
+# Variante para DEMOSTRACION sin costo: Render Free. NO operar cajas reales con este plan.
+services:
+  - type: web
+    name: universal-erp
+    runtime: python
+    plan: free
+    region: virginia
+    numInstances: 1
+    autoDeployTrigger: 'off'
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:application --bind 0.0.0.0:$PORT --workers 1 --worker-class gthread --threads 8 --timeout 120 --graceful-timeout 30 --access-logfile - --error-logfile -
+    healthCheckPath: /readyz
+    maxShutdownDelaySeconds: 60
+    envVars:
+      - key: ERP_ENV
+        value: production
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: TZ
+        value: America/La_Paz
+      - key: DATABASE_URL
+        sync: false
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: ERP_USERS_JSON
+        sync: false
+      - key: ERP_DB_SSL_MODE
+        value: verify-full
+      - key: ERP_DB_SSL_ROOT_CERT
+        value: /etc/secrets/supabase-ca.crt
+      - key: ERP_DB_POOL_SIZE
+        value: "8"
+      - key: ERP_PRINT_MODE
+        value: manual
+      - key: ERP_PAYROLL_MAIL_ENABLED
+        value: "false"

@@ -1,0 +1,583 @@
+{
+  "formatVersion": 1,
+  "createdAt": "2026-10-09T03:49:48.297222+00:00",
+  "description": "Variante Render Free para desarrollo y demo; no apta para cajas de cine en producción. Sin secretos ni datos de operación.",
+  "files": {
+    ".env.example": {
+      "bytes": 2291,
+      "sha256": "d9cae3a2b3716c93cf13461a54ffdcddf05444aee8af6daa07dfd947f5dabf10"
+    },
+    ".gitignore": {
+      "bytes": 641,
+      "sha256": "3c361883aa25a90f7fa32f35d85de28b08e3e4d2300559b3d4db223c92c9e369"
+    },
+    ".python-version": {
+      "bytes": 5,
+      "sha256": "02e735b3dfe1c32833eb550b7ff8ffa17f5f2bc3fa1e7bae61a8f5a3883ce398"
+    },
+    "README.md": {
+      "bytes": 8912,
+      "sha256": "084eb2945a1fcc9f774c2d20929d4e2d9ef1d1cb319f7e6e2591aaf8e838cdef"
+    },
+    "admin.css": {
+      "bytes": 28173,
+      "sha256": "a6fdee4498645033ce24c533f594a6b2e441f4e8506a54b54ed4028433142ae0"
+    },
+    "admin.html": {
+      "bytes": 1068,
+      "sha256": "a16abfcfa04b55590c4adf1fff7aa422c0d2942817c3df9e3bc6f0bbe6e15312"
+    },
+    "admin.js": {
+      "bytes": 319878,
+      "sha256": "7fc6b882bbf32007e8a32c27d631bcea860ea5bba7724f3e751c278e877dbd1d"
+    },
+    "app.js": {
+      "bytes": 185729,
+      "sha256": "39549e2c68e0a58d440220cbe912f2f62ca8c6953cb09576bd8d7a58c1af5e96"
+    },
+    "assets/README.md": {
+      "bytes": 852,
+      "sha256": "0ee32be11839de43c6e36d8c729b605c99bbd9350dfeb004b104236ad01bc702"
+    },
+    "assets/candy-editorial.png": {
+      "bytes": 1961463,
+      "sha256": "28887297078e490de1ad6ffd354dcf9d399df282bca7bf72fe1f2c1920e9223a"
+    },
+    "assets/cinema-atmosphere.png": {
+      "bytes": 1532053,
+      "sha256": "b64d76e82f074a26aaca9895d7901227999aa6782980e9568ea8774c43a533f9"
+    },
+    "assets/logo-multicine-universal.png": {
+      "bytes": 215467,
+      "sha256": "8b2186a25e10c46f027fd1afca5a727021fe959932420be705f645203b61d401"
+    },
+    "auth_config.py": {
+      "bytes": 368,
+      "sha256": "2768119ee399294ae922d661252f3db7b4d0fd1640e2ac9d0dcd75123225b7b6"
+    },
+    "candy.py": {
+      "bytes": 373,
+      "sha256": "771205d23905c13fa91cd50f7aa4f5a584a58dabd5119388ee07ab6308e32f43"
+    },
+    "cash.py": {
+      "bytes": 228,
+      "sha256": "30743af55ea07c11bbe484b9b2a4e4f8a2bbbe66fa2414d18630a41c27855efd"
+    },
+    "cinema.py": {
+      "bytes": 336,
+      "sha256": "ec92b06162a980c7b85dbbe31cfa32977be7177bda17038bebc99af91de5701d"
+    },
+    "cloud_print.py": {
+      "bytes": 249,
+      "sha256": "2455e20359bab99b93ba167ea178909ff5be83790ac8b899a8e4e6f0b9c5419f"
+    },
+    "design-tokens.css": {
+      "bytes": 2401,
+      "sha256": "3a3ff0f62ce9bd038b0a3e6b8cd3982c08ce2c1c38956686cb2cf6eccfec9cd9"
+    },
+    "docs/DEPLOYMENT.md": {
+      "bytes": 17262,
+      "sha256": "b6f720f4613acc2e5908f5307c35727dbe9f99681502f47d7b8c90f149be1df8"
+    },
+    "docs/FRONTEND.md": {
+      "bytes": 17792,
+      "sha256": "7b4a5b41c5289c1528e5396447520048ed0de8bca88a796031fa3b3ceac1cc05"
+    },
+    "docs/PRINTING.md": {
+      "bytes": 7765,
+      "sha256": "a3acd1a36e095181b88293a174c9639cd11ac0fdde127973e7f6d4838aab5dac"
+    },
+    "docs/adr/001-modular-monolith.md": {
+      "bytes": 895,
+      "sha256": "26e66cbb130396584f30c0e5ecc2212b95e3b7bb6210f77b502e9721abd77c51"
+    },
+    "docs/adr/002-atomic-state-repository.md": {
+      "bytes": 858,
+      "sha256": "2275f472015a2381f40ad0efa58d8dface1666f5ff4f9f42278c25885ec8d7d2"
+    },
+    "docs/architecture-current.md": {
+      "bytes": 3862,
+      "sha256": "3637672970beb687325591dbfaf17bccce8557d3e2c130e6a69832907023923a"
+    },
+    "docs/architecture-report.md": {
+      "bytes": 9387,
+      "sha256": "822a2fa17f32d6dc5958a92f1728353b7fd3325614228c3e880fc8278235df3e"
+    },
+    "docs/architecture.md": {
+      "bytes": 12823,
+      "sha256": "f4185b41b8411049814fc5f8bdb13f5a40261e6e5a0e0244f8a2c883ceb618be"
+    },
+    "erp/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "erp/application/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "erp/application/commands.py": {
+      "bytes": 4173,
+      "sha256": "17ec2f6ebbe6e14ec95592fdbf3c12b18c2f5a65c03387a2c8410d57925e8791"
+    },
+    "erp/application/documents.py": {
+      "bytes": 2278,
+      "sha256": "fd9da7e223684229b9df899c8291fcfdb24dfd8239f72276473b709a13b6ddeb"
+    },
+    "erp/application/ports.py": {
+      "bytes": 481,
+      "sha256": "e423abb7b6e6218acc3cb3f116a8ab36de6221b009ed9170f5f4a4751e4ca23f"
+    },
+    "erp/application/queries.py": {
+      "bytes": 2239,
+      "sha256": "022251e46091f2633ba090ae5d139975a0bcfd51578ec89ab6f09144d67344b6"
+    },
+    "erp/application/service.py": {
+      "bytes": 490,
+      "sha256": "fc270264503d648562342efbbd2ffed47f8914e2b34308360209884435da0570"
+    },
+    "erp/infrastructure/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "erp/infrastructure/persistence.py": {
+      "bytes": 12141,
+      "sha256": "f1c13f0820701e89744cb1491a12b10da0decbf828b75a7a94aa104e416b1235"
+    },
+    "erp/infrastructure/state_repository.py": {
+      "bytes": 1285,
+      "sha256": "d6a44572007ace0b4d8363d64ace8aa7353015a50f16f819168e9dc9c5e53b0c"
+    },
+    "erp/modules/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "erp/modules/candy/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "erp/modules/candy/domain.py": {
+      "bytes": 7195,
+      "sha256": "c2295d9498aa25df23023635f53300f9eab6491c84f7fdc8aec8c3343850991c"
+    },
+    "erp/modules/candy/presentation.py": {
+      "bytes": 2129,
+      "sha256": "5924355032a802ced392110ce1e0aa6eeabbd35d487aeecc6c42b6669cd14ecf"
+    },
+    "erp/modules/cash/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "erp/modules/cash/domain.py": {
+      "bytes": 4927,
+      "sha256": "ac616b3c698cb78f4946d56d0fb01d0d9a6a17fc0b0c38f4df17703927e1f1ea"
+    },
+    "erp/modules/cash/operations.py": {
+      "bytes": 1466,
+      "sha256": "ef7b47e88e961885146968c5f42fe3a86b63b0119e7959190df03ab609b6e788"
+    },
+    "erp/modules/cash/presentation.py": {
+      "bytes": 4168,
+      "sha256": "5db680f22b14b87e1567bc8fb541f7590da9ec5e398cdaa9c108027ddcfd94e0"
+    },
+    "erp/modules/catalog/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "erp/modules/catalog/application.py": {
+      "bytes": 956,
+      "sha256": "db0199a323c982d204d14de85c0a8a6f6ebfcba5b3f44a66e1663ac3a825397e"
+    },
+    "erp/modules/catalog/domain.py": {
+      "bytes": 8790,
+      "sha256": "67282730b9b52f58cb8221d700448ce0dce239caefe4b35ac882cc11706f24d9"
+    },
+    "erp/modules/catalog/trailers.py": {
+      "bytes": 2140,
+      "sha256": "73a62dd162b390b5fe5246a41a90e65d3a3c1c747609a78cb5f2ee7487a5da44"
+    },
+    "erp/modules/identity/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "erp/modules/identity/application.py": {
+      "bytes": 3030,
+      "sha256": "27cfb7011cbbf6282d0ff03198ed78a3c6f82c98162d920722d3cff89b8d55c2"
+    },
+    "erp/modules/identity/domain.py": {
+      "bytes": 283,
+      "sha256": "6151dd3d3828e3377c08f14f37a0cfe8309ffd3c71eaeb2309e0e7c905b6f2ce"
+    },
+    "erp/modules/identity/infrastructure.py": {
+      "bytes": 7326,
+      "sha256": "cacf67d2052b262e711f95a3d4dfbedb3e8ef460c14fd40b31958a31958cf3ff"
+    },
+    "erp/modules/inventory/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "erp/modules/inventory/domain.py": {
+      "bytes": 287,
+      "sha256": "7690fcc62266bc3b977be7e0b80640e0a9091d6878dfac4422c5c5c137f0ae9b"
+    },
+    "erp/modules/inventory/operations.py": {
+      "bytes": 3821,
+      "sha256": "1f79c469f79ffa582338edbe1cb31af5435923484f9b8b455fd3b02e103c9633"
+    },
+    "erp/modules/inventory/presentation.py": {
+      "bytes": 2355,
+      "sha256": "034fa8f2a8fc7b19ffb128d6d7c5bc70202e7cea27585c1f924bffcebb7dd85a"
+    },
+    "erp/modules/payroll/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "erp/modules/payroll/application.py": {
+      "bytes": 1098,
+      "sha256": "be490526a8bd1caf29c9a166e9c12d55db497181127dde20d684f1559518632a"
+    },
+    "erp/modules/payroll/biometric.py": {
+      "bytes": 3463,
+      "sha256": "6ee9404f8d3629e151ae0cf30a3d68ed015174dd3552ded6463dc54f9ae76c4c"
+    },
+    "erp/modules/payroll/domain.py": {
+      "bytes": 19873,
+      "sha256": "58641cb3b1f1729bc604a5820429a3d54b531d42d6c07c57e9091a38801408d3"
+    },
+    "erp/modules/payroll/mail.py": {
+      "bytes": 9066,
+      "sha256": "b49f72d2ceb6abf8282460ed059040a19d205dc00a6f1cb6a9f5749707799bd3"
+    },
+    "erp/modules/payroll/presentation.py": {
+      "bytes": 3608,
+      "sha256": "86c49082029add3f988b7041df4abfdebb6bc1fcb5dc2ebd021ba2b9269b10e2"
+    },
+    "erp/modules/ticketing/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "erp/modules/ticketing/admissions.py": {
+      "bytes": 434,
+      "sha256": "92669de6a944b069244e8bd64b72de5e1b2dc17d973317fe0c2f32bccc618367"
+    },
+    "erp/modules/ticketing/domain.py": {
+      "bytes": 4161,
+      "sha256": "5bc3ffcc4392b791a590b70aba5eca381502f138a0476891d2a309aa6751eacf"
+    },
+    "erp/modules/ticketing/presentation.py": {
+      "bytes": 2675,
+      "sha256": "9e2d431d15bc159ea4a7e6369130e88008705773d9c1f82aaf5a460d219321bf"
+    },
+    "erp/modules/ticketing/print_queue.py": {
+      "bytes": 11285,
+      "sha256": "e5e6c37da58eac1914d5222493732808910a436deb78ad23e20d22f2c7459515"
+    },
+    "erp/modules/ticketing/printing.py": {
+      "bytes": 2549,
+      "sha256": "2394bd8202df1e1941b82c508ccd0a0a1309cacbf8722917e4d00d80be135b42"
+    },
+    "erp/modules/ticketing/thermal.py": {
+      "bytes": 4752,
+      "sha256": "619cbf03cd5ab67b568b31cb208cb4bc1de197cf3e7aacef46331831ccb95839"
+    },
+    "erp/presentation/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "erp/presentation/http.py": {
+      "bytes": 12061,
+      "sha256": "ad95301f3a4a819135818228279de9ce854a3b4d60d124d762dcd76745141a73"
+    },
+    "erp/shared/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "erp/shared/domain/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "erp/shared/domain/records.py": {
+      "bytes": 843,
+      "sha256": "a76f681c2382982ae27afe6751564b22b97bc5c0fb91e848f60adfa5e059d4c3"
+    },
+    "erp/shared/domain/validation.py": {
+      "bytes": 1009,
+      "sha256": "09157c3a2f6308a6debebb5f2d4e1b283f18e82836d964ee3d7537db2bd155a5"
+    },
+    "eslint.config.mjs": {
+      "bytes": 1422,
+      "sha256": "ff2b262959cb89fdb1d0e7991a47a8a7f6c61fc00fb642e4f03efa943e727f96"
+    },
+    "index.html": {
+      "bytes": 8553,
+      "sha256": "50a5dda65c7780e37ec0e0f96c37ee345b1314c13b8cb51c2947dfa1e8fe4f3e"
+    },
+    "iniciar-erp.cmd": {
+      "bytes": 100,
+      "sha256": "18d36a007db1ba828de65ec49ee197616ae1da54c459337ef549a16039288fc8"
+    },
+    "migrate_data.py": {
+      "bytes": 11503,
+      "sha256": "df66064c808a50c7009b39e79d12c14b64539d9e9eb5b58d546f34bd8d0ac7d2"
+    },
+    "package-lock.json": {
+      "bytes": 83661,
+      "sha256": "fb19da20ad575d22a984c3630f24e284dad9dd26c91c47558b1755d390238b8f"
+    },
+    "package.json": {
+      "bytes": 721,
+      "sha256": "0d5894cb4c7527b139d0ad826fa9316bb03aca2451748694415566b273f7e34a"
+    },
+    "payroll.css": {
+      "bytes": 5436,
+      "sha256": "dad30a226a67629d404d5ab45e4cab0b292174d2ff863824460aa7cc93dac88f"
+    },
+    "payroll.py": {
+      "bytes": 585,
+      "sha256": "d366985fccab4c2572ab567ce66a3c2c75b0e9da129e81a0e0243d6e7ebf9a03"
+    },
+    "payroll_mail.py": {
+      "bytes": 259,
+      "sha256": "85803cd42d2d2b6ad2ac127ed258bde31b0258d489b074d19761b47578e6cf75"
+    },
+    "pos.css": {
+      "bytes": 9420,
+      "sha256": "964d804dd2258c978285fe1cdab5afec6be8107642a5488da961c5b7ae372327"
+    },
+    "print_agent.py": {
+      "bytes": 7489,
+      "sha256": "8f4c8dd62f88214a32e39b708192494544c0f872f41664c992655f67058aa882"
+    },
+    "render.yaml": {
+      "bytes": 1205,
+      "sha256": "1f03c1b484c5d8ad72b9bc966859a29fbe036dd2cbe6a61efc2ab61476c39fa7"
+    },
+    "reports.css": {
+      "bytes": 2052,
+      "sha256": "02b1784707de28ff38b2c81584a3b2e158e3185ee1387b1fec51f47246545238"
+    },
+    "requirements.txt": {
+      "bytes": 167,
+      "sha256": "897759857fdbb611019355c2e1854c7588538dc666b329567ccd48519413b41d"
+    },
+    "scripts/build_frontend.mjs": {
+      "bytes": 463,
+      "sha256": "931a4ea0b3a9622e2bb3c3e3c0a60ec1806763517111e984c821185e862d6792"
+    },
+    "scripts/check_architecture.py": {
+      "bytes": 2889,
+      "sha256": "ee62f47cd59da670846f79dd8302f3fdf272c8ae237736f955a785c306f1ed7a"
+    },
+    "scripts/check_frontend_architecture.mjs": {
+      "bytes": 3170,
+      "sha256": "903df575a190f4b55cf6cdb28a8736933b95fcd892a17e47dceb1eb0236590af"
+    },
+    "scripts/package_release.py": {
+      "bytes": 9928,
+      "sha256": "f3069a974312f3d0fd52622d39aadbff976b30e62206e7778b304197af1d5a3f"
+    },
+    "server.py": {
+      "bytes": 6549,
+      "sha256": "0b9b2b8a9a9a49373a732d108026db3190fadc3e0befc3e574f0069a1d775dcc"
+    },
+    "src/app/admin.js": {
+      "bytes": 27058,
+      "sha256": "278c80d7098930bc5f11fb6fdcdbdc6da8d2c2ef5fb8fc44309b969a3affbb5e"
+    },
+    "src/app/prepare-command.ts": {
+      "bytes": 1270,
+      "sha256": "daca7f8b47af5a67b46675cfd696639dadc216e92ef91e3e88112abe72a9ee33"
+    },
+    "src/app/public.js": {
+      "bytes": 234,
+      "sha256": "310e97187bba6d6da60c8d4d1777cc80007d8ade211886e986faacc01dc3d24b"
+    },
+    "src/app/trailers.js": {
+      "bytes": 229,
+      "sha256": "7726cb2a7d762fcb9d9ec6c49d6b86ffd105ad875e7da1d19d5da05616dc0bd4"
+    },
+    "src/modules/candy/application.ts": {
+      "bytes": 1130,
+      "sha256": "88746da4574aa8f4a27fc1a00f5dcc4533b66419ec1b9438760f57c175656043"
+    },
+    "src/modules/candy/presentation.js": {
+      "bytes": 14611,
+      "sha256": "427b35845f361137bbe7a7f7bd1eec70660b3cca1872e200460509e92f91060b"
+    },
+    "src/modules/cash/forms.ts": {
+      "bytes": 579,
+      "sha256": "ad69b113b0b7c9542830a35fb6ec9a503662ae2420cebbc905df7e83874cb4fe"
+    },
+    "src/modules/cash/presentation.js": {
+      "bytes": 9971,
+      "sha256": "5f73f11cc26c96a485e2271f6dde109cb079b2f5718bfdf3568681b3b6bdb460"
+    },
+    "src/modules/catalog/application.ts": {
+      "bytes": 1549,
+      "sha256": "b37a38ea4a0e17739863f157a53fba2d6c897184ef0bee555cfb0ca3207e7e42"
+    },
+    "src/modules/catalog/forms.ts": {
+      "bytes": 643,
+      "sha256": "dcee99312b57a63f6b9e6a7b3bcf9741c18c3f53a31be2d66056f323aa43fbb9"
+    },
+    "src/modules/catalog/presentation.js": {
+      "bytes": 13006,
+      "sha256": "86f6f045f3dc777d149d18a92c8ed71d8679ea16fd225754b366e722b5204791"
+    },
+    "src/modules/catalog/public-presentation.js": {
+      "bytes": 12101,
+      "sha256": "f5af4827ad4b13117389544e5ffc1ec9dfa23a4db8eba043ed51330009ae5938"
+    },
+    "src/modules/catalog/trailer-player.js": {
+      "bytes": 2798,
+      "sha256": "ca7d1933122de09107572932b1e7bcd130863d6b52002004f5fc7727418379cf"
+    },
+    "src/modules/identity/application.ts": {
+      "bytes": 1906,
+      "sha256": "e4678917f99825b16a4bf0315e0d053f386a5752a36263cf6beebd4c3d4ba857"
+    },
+    "src/modules/inventory/forms.ts": {
+      "bytes": 688,
+      "sha256": "cf3103396e788f62d53b5fa5685f3c5b23afbf8cd88440c191d4b044011db310"
+    },
+    "src/modules/inventory/presentation.js": {
+      "bytes": 10755,
+      "sha256": "389d704674d8ba893fea6de24b9b8cf8c02897e813a48c0bf9ca67fb757d5451"
+    },
+    "src/modules/operations/presentation.js": {
+      "bytes": 5455,
+      "sha256": "d9712e516b8af623233adbb6dabea113b00846dfdb8f030b5b1fe08bb05da99e"
+    },
+    "src/modules/payroll/biometric-reader.ts": {
+      "bytes": 627,
+      "sha256": "b54f9c4d165720104ad1420b59968df51cb0846fb0bfab5a1000f9999eea5c8b"
+    },
+    "src/modules/payroll/forms.ts": {
+      "bytes": 1175,
+      "sha256": "ce4fa89309fb1818a6f9898ccf4155bb3875f8fd0a8c071fd0c0f87f87050d8e"
+    },
+    "src/modules/payroll/presentation.js": {
+      "bytes": 19698,
+      "sha256": "a17ceee5e715ad65252f86dca9e44ea7d1d0329a230833c1db6e559b10ac2e25"
+    },
+    "src/modules/ticketing/application.ts": {
+      "bytes": 1304,
+      "sha256": "75ce889b22fcccbdeb4a1ca06dd34a458cd84a21d0af8df95960d7cdd7a6fade"
+    },
+    "src/modules/ticketing/presentation.js": {
+      "bytes": 16745,
+      "sha256": "13017ff9b9ae2fc95dc13a49838ffcf56c8649d53936b00efe73ef57ca5c8457"
+    },
+    "src/shared/application/command-client.ts": {
+      "bytes": 784,
+      "sha256": "4c4482dda96f9b1ae8b8d4ad248aed00bb83e3bd71a1e3426c80f3dadc982d71"
+    },
+    "src/shared/application/commands.ts": {
+      "bytes": 424,
+      "sha256": "4e96c32500365de37b366daa5cc681f592e42a6a3deccaafdaecfda031129906"
+    },
+    "src/shared/application/http-port.ts": {
+      "bytes": 258,
+      "sha256": "827f022529ecd33998d26fc55022865e66c7b74e01d726cbb50362c5cd590234"
+    },
+    "src/shared/contracts.ts": {
+      "bytes": 1286,
+      "sha256": "8f7ceb174a5e3d70beef0eaa20769dd8f4868ea4aa132f0990cce88fe4a7fb90"
+    },
+    "src/shared/presentation/forms.ts": {
+      "bytes": 694,
+      "sha256": "4cfab6e3ff0742c63bc3d9b971e723e4c058e16c5ab1f432b6ef7e317e385fba"
+    },
+    "src/shared/ui.ts": {
+      "bytes": 4124,
+      "sha256": "aadf041a767040540f802a8e30c0aa0b7b2117bf81f95e8010724a7d8c3dbac4"
+    },
+    "storage.py": {
+      "bytes": 362,
+      "sha256": "e1b712e294477522a14d319079bd8fbdf447cd9a33703fec4e99453dbb20286e"
+    },
+    "styles.css": {
+      "bytes": 22007,
+      "sha256": "91d0efe09c010e7f53849c4e230319c545e6efed59edaeba260a74f54d25d035"
+    },
+    "supabase/schema.sql": {
+      "bytes": 2820,
+      "sha256": "9b60dde77b8cb00b9a7b20d63cec3e21609ba31cf0312a6917bd8bf60dfcb8ee"
+    },
+    "test_architecture.py": {
+      "bytes": 6537,
+      "sha256": "9a67fc5575b003fc5eb079cd8d271d9804ff7816ef8fa0059d0d018c4690b82d"
+    },
+    "test_cloud_print.py": {
+      "bytes": 6511,
+      "sha256": "0c129d50e940d37a9e45fd42c84e4b08dc6626485203e6fbe925958936104758"
+    },
+    "test_erp.py": {
+      "bytes": 21762,
+      "sha256": "d239068e87d51299fda495c25a9630c7d97fe64de55a173ff71c7c46c0903189"
+    },
+    "test_http.py": {
+      "bytes": 12464,
+      "sha256": "379fa658123b76ce70997452b29af81e8a02254bdf70d5a9b2b113c7a249e7b9"
+    },
+    "test_payroll_mail_worker.py": {
+      "bytes": 8429,
+      "sha256": "287b20b470b7c4ec089eef8b5d378e330695f36052ceea31c0bbd5129e756b4b"
+    },
+    "test_storage.py": {
+      "bytes": 7560,
+      "sha256": "5fc9ca93d21660b2ef48ee4706a00d2be64b3f961bfe05b760eec14f4cf8fab6"
+    },
+    "tests/contracts.test.mjs": {
+      "bytes": 1028,
+      "sha256": "6976f26012429304fe9b6dd221b5c4842930b22ddfea333546ecd12f6108590a"
+    },
+    "tests/e2e.cjs": {
+      "bytes": 27868,
+      "sha256": "5a33810023994de76fa32adb93290948f1317a2ae86f7c847f482d2ca0956e64"
+    },
+    "tests/feature-clients.test.mjs": {
+      "bytes": 1786,
+      "sha256": "1b02a214bd527cde0e9208d880d7eea3134ae62fe7ab2398f7ed30d0a3eef306"
+    },
+    "tests/fixture.py": {
+      "bytes": 3609,
+      "sha256": "559992e647a74aa214246ae58270c2a2d944cff17f90639c0b810b8cfee386ea"
+    },
+    "tests/session.test.mjs": {
+      "bytes": 2442,
+      "sha256": "4af214c21fc329f9427da929429eac8f1bdf1a4a94f7632db5b475510aa35a65"
+    },
+    "tests/ui.test.mjs": {
+      "bytes": 1566,
+      "sha256": "ff51873c3bc758a7517a6e70865498e26f8b3554938bc771678303578f92bad9"
+    },
+    "thermal.py": {
+      "bytes": 185,
+      "sha256": "72366697a596f649579b3a6503935b75bdebe275a9a28b174eef8f9eb1f3064d"
+    },
+    "ticketing.py": {
+      "bytes": 351,
+      "sha256": "615a18b2569dd9a8aaf0ecd04529e1f00822371278e7295b224aedac74a9af8f"
+    },
+    "trailers.js": {
+      "bytes": 175024,
+      "sha256": "1fe63611d45b3b074a8a92a674cdfa07cfe3f8a1ec6a44d0dc6412a975fa6656"
+    },
+    "tsconfig.json": {
+      "bytes": 480,
+      "sha256": "dc697d2bf20d713d51789eef8876b1c67d6c9cb044684d213f505bdc22522c0d"
+    },
+    "ui.js": {
+      "bytes": 3791,
+      "sha256": "b000ec6b56772f3059a6f95b6322ecea4a02a46b529c5b1c1899182f815bf992"
+    },
+    "vitest.config.mjs": {
+      "bytes": 148,
+      "sha256": "4158b6bb6f6c70ea8937db48c17c1649ae4f85e0f7e1ef5f209a0270777ee199"
+    },
+    "wsgi.py": {
+      "bytes": 4168,
+      "sha256": "b6fcd98a682f1d3cad65d33a1baddec83b679b8363a2af044c7f648f17551190"
+    }
+  }
+}

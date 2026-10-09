@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101113">
+  <meta name="description" content="Consulta las películas, horarios y formatos de Multicine Universal. Elige tu sucursal y prepara tu próxima visita al cine.">
+  <title>Multicine Universal · Cartelera</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="design-tokens.css?v=sala-1">
+  <link rel="stylesheet" href="styles.css?v=sala-1">
+</head>
+<body>
+  <a class="skip-link" href="#cartelera">Ir a la cartelera</a>
+  <header class="site-header">
+    <a class="brand" href="#inicio" aria-label="Multicine Universal, inicio"><img class="official-logo" src="assets/logo-multicine-universal.png" alt="" width="44" height="52"><span>MULTICINE<strong>UNIVERSAL</strong></span></a>
+    <nav class="main-nav" aria-label="Navegación principal"><a class="active" href="#cartelera">Cartelera</a><a href="#experiencias">Experiencias</a><a href="#candy">Candy bar</a><a href="#cine">Nuestro cine</a></nav>
+    <label class="location-button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><span class="sr-only">Tu cine</span><select id="public-branch" aria-label="Sucursal"><option>Potosí</option><option>Sucre</option><option>Oruro</option></select></label>
+    <button class="menu-button" type="button" aria-label="Abrir menú" aria-controls="mobile-navigation" aria-expanded="false"><span></span><span></span></button>
+    <nav class="mobile-nav" id="mobile-navigation" aria-label="Navegación móvil" inert><a href="#cartelera">Cartelera</a><a href="#experiencias">Experiencias</a><a href="#candy">Candy bar</a><a href="#cine">Nuestro cine</a></nav>
+  </header>
+  <main id="inicio">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-backdrop" aria-hidden="true"></div>
+      <div class="hero-content">
+        <h1 id="hero-title">Historias que<br><em>te atraviesan.</em></h1>
+        <p class="hero-copy">Vive cada escena en pantalla grande.</p>
+        <div class="hero-actions"><a class="button button-primary" href="#cartelera">Elegir mi función <span aria-hidden="true">→</span></a><span class="hero-branch-note">Cartelera de <strong data-branch-name>Potosí</strong></span></div><button class="hero-featured" id="featuredMovie" type="button" hidden></button>
+      </div>
+      <section class="hero-trailers" id="trailers" aria-label="Tráileres de películas"><div class="trailer-caption">Próximas historias <span>Tráileres</span></div><div class="trailer-screen" id="trailer-screen"><div class="trailer-placeholder"><p>Cargando próximas historias…</p></div></div></section>
+      <div class="hero-meta"><span>Multicine Universal · <b data-branch-name>Potosí</b></span><button class="hero-next" type="button">Explorar cartelera <span aria-hidden="true">↓</span></button></div>
+    </section>
+    <section class="showtimes section-wrap" id="cartelera" aria-labelledby="showtimes-title">
+      <div class="section-intro"><div><p class="eyebrow" id="catalog-month">Tu próxima función</p><h2 id="showtimes-title">En cartelera</h2></div><p class="catalog-summary" id="catalog-summary" aria-live="polite">Selecciona un día y descubre sus horarios.</p></div>
+      <div class="date-picker" aria-label="Seleccionar fecha"></div>
+      <div class="movie-carousel" aria-label="Películas en cartelera"><button class="carousel-arrow prev" type="button" aria-label="Películas anteriores">←</button><div class="movie-track"><div class="catalog-loading" role="status">Cargando cartelera…</div></div><button class="carousel-arrow next" type="button" aria-label="Más películas">→</button></div>
+      <div class="carousel-footer"><p id="carousel-position" aria-live="polite"></p><span>Elige una película para ver horarios y salas</span></div><div class="carousel-progress" aria-hidden="true"><span></span></div>
+    </section>
+    <section class="experience-banner" id="experiencias" aria-labelledby="experience-title">
+      <div class="experience-bg" role="img" aria-label="Butacas y luz de proyección en una sala de cine; imagen ilustrativa"></div>
+      <div class="experience-content"><p class="eyebrow">La experiencia</p><h2 id="experience-title">Historias<br>en <em>2D y 3D.</em></h2><p>Consulta en nuestra cartelera los formatos disponibles para cada película y elige cómo quieres vivir tu próxima historia.</p><a class="button button-outline" href="#cartelera">Ver formatos y horarios <span aria-hidden="true">↗</span></a></div>
+    </section>
+    <section class="candy" id="candy" aria-labelledby="candy-title">
+      <div class="candy-content"><p class="eyebrow">Candy bar</p><h2 id="candy-title">El ritual<br><em>también cuenta.</em></h2><p class="section-note">Consulta los combos, precios y disponibilidad en el Candy bar de tu sucursal.</p><div class="combo-list">
+        <article><div><h3>Combo Universal</h3><p>Para compartir</p></div><button class="add-combo" type="button" data-combo="Combo Universal">Consultar <span aria-hidden="true">↗</span></button></article>
+        <article><div><h3>Combo Clásico</h3><p>Individual</p></div><button class="add-combo" type="button" data-combo="Combo Clásico">Consultar <span aria-hidden="true">↗</span></button></article>
+        <article><div><h3>Mix Dulce</h3><p>Para los antojos</p></div><button class="add-combo" type="button" data-combo="Mix Dulce">Consultar <span aria-hidden="true">↗</span></button></article>
+      </div></div><figure class="candy-photo"><img src="assets/candy-editorial.png" alt="Pipocas y refresco; imagen ilustrativa" loading="lazy" width="1536" height="1024"><figcaption>Imagen ilustrativa · Consulta la presentación en tu cine.</figcaption></figure>
+    </section>
+    <section class="cinema-info section-wrap" id="cine" aria-labelledby="cinema-title">
+      <div class="cinema-content"><p class="eyebrow">Multicine Universal · <b data-branch-name>Potosí</b></p><h2 id="cinema-title">Nos vemos<br><em>en el cine.</em></h2><p id="cinema-description">Prepara tu próxima visita.</p></div>
+      <div class="cinema-contact"><div class="cinema-photo" hidden></div><div class="cinema-details" id="cinema-details"><div><span>ENCUÉNTRANOS</span><strong>Padilla #31<br>Potosí, Bolivia</strong></div><div><span>HORARIOS</span><strong>Lun — Dom<br>10:00 — 22:00</strong></div><div><span>CONTACTO</span><strong>+591 2 6226133</strong></div></div><a class="text-link" id="cinema-map" href="https://www.google.com/maps/dir/?api=1&amp;destination=Padilla+31%2C+Potos%C3%AD%2C+Bolivia&amp;travelmode=driving" target="_blank" rel="noopener noreferrer">Cómo llegar <span aria-hidden="true">↗</span></a></div>
+    </section>
+  </main>
+  <footer class="site-footer section-wrap"><a class="brand" href="#inicio"><img class="official-logo" src="assets/logo-multicine-universal.png" alt="" width="44" height="52"><span>MULTICINE<strong>UNIVERSAL</strong></span></a><p>© 2026 Multicine Universal · <span data-branch-name>Potosí</span></p><a href="admin.html">Acceso del equipo ↗</a></footer>
+  <div class="toast" role="status" aria-live="polite"><span class="toast-text"></span><button type="button" aria-label="Cerrar aviso">×</button></div>
+  <div class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-title" inert>
+    <div class="modal-backdrop" data-close-modal></div><div class="modal-panel"><button class="modal-close" type="button" aria-label="Cerrar" data-close-modal>×</button><div class="modal-film"></div><div class="modal-details"><p class="eyebrow">Elige tu momento</p><h2 id="modal-title"></h2><p class="modal-subtitle"></p><div class="modal-date-picker" aria-label="Cambiar fecha de la película"></div><div class="public-functions"></div><p class="sales-note"><strong>Compra tus entradas en boletería.</strong><br>La disponibilidad se actualiza cada 30 segundos.</p></div></div>
+  </div>
+  <script src="ui.js?v=sala-1"></script><script src="app.js?v=sala-1"></script><script src="trailers.js?v=sala-1"></script>
+</body>
+</html>
