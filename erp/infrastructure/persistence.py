@@ -102,6 +102,26 @@ def close_pool():
 atexit.register(close_pool)
 
 
+@contextmanager
+def postgres_connection():
+    """Use psycopg pooling normally, or one short-lived client connection for demos.
+
+    With ERP_DB_CLIENT_POOL=disabled, Supavisor remains the server-side pooler.
+    Transactions still commit or roll back on exiting this context manager.
+    """
+    mode = os.environ.get('ERP_DB_CLIENT_POOL', 'enabled').lower()
+    if mode == 'enabled':
+        with pool().connection() as conn:
+            yield conn
+    elif mode == 'disabled':
+        import psycopg
+        url = database_url()
+        with psycopg.connect(url, **connection_options(url)) as conn:
+            yield conn
+    else:
+        raise RuntimeError('ERP_DB_CLIENT_POOL debe ser enabled o disabled.')
+
+
 class PostgresStateConnection:
     """Small, explicit compatibility boundary for the legacy domain services."""
     def __init__(self, connection):
@@ -127,7 +147,7 @@ class PostgresStateConnection:
 @contextmanager
 def connect(sqlite_path):
     if database_url():
-        with pool().connection() as conn:
+        with postgres_connection() as conn:
             yield PostgresStateConnection(conn)
     else:
         conn = sqlite3.connect(sqlite_path, timeout=20)
@@ -141,7 +161,7 @@ def connect(sqlite_path):
 
 def initialize(sqlite_path, seed_factory, upgrade):
     if database_url():
-        with pool().connection() as conn:
+        with postgres_connection() as conn:
             version = conn.execute('SELECT max(version) FROM erp_private.schema_versions').fetchone()[0]
             if version != SCHEMA_VERSION:
                 raise RuntimeError('Esquema incompatible. Ejecuta migrate_data.py bootstrap antes del despliegue.')
@@ -188,7 +208,7 @@ class AuthStore:
     @contextmanager
     def transaction(self):
         if database_url():
-            with pool().connection() as conn:
+            with postgres_connection() as conn:
                 yield conn, True
         else:
             with connect(self.sqlite_path) as conn:
