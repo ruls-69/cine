@@ -27,7 +27,7 @@ services:
       - key: ERP_DB_SSL_MODE
         value: verify-full
       - key: ERP_DB_SSL_ROOT_CERT
-        value: /etc/secrets/supabase-ca.crt
+        value: /etc/secrets/prod-ca-2021.crt
       - key: ERP_DB_POOL_SIZE
         value: "8"
       - key: ERP_PRINT_MODE
