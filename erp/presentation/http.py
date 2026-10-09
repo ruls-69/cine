@@ -68,6 +68,18 @@ class HttpHandler(SimpleHTTPRequestHandler):
                 logging.getLogger(__name__).warning(
                     'Readiness storage error: type=%s sqlstate=%s',
                     type(error).__name__, getattr(error, 'sqlstate', None) or 'none')
+                if type(error).__name__ == 'PoolTimeout':
+                    try:
+                        from erp.infrastructure import persistence
+                        stats = persistence.pool().get_stats()
+                        logging.getLogger(__name__).warning(
+                            'DB pool diagnostics: pool_size=%s available=%s waiting=%s '
+                            'requests=%s connections_errors=%s',
+                            stats.get('pool_size'), stats.get('pool_available'),
+                            stats.get('requests_waiting'), stats.get('requests_num'),
+                            stats.get('connections_errors'))
+                    except Exception:
+                        pass
                 return self.respond(503,{'status':'unavailable'})
         if path in ['/api/public/catalog','/api/public/trailers']:
             branch=parse_qs(urlparse(self.path).query).get('branch',['Potosí'])[0]
