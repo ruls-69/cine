@@ -18,6 +18,7 @@ from urllib.error import HTTPError, URLError
 
 from erp.modules.payroll import presentation as payroll
 from erp.modules.payroll import brevo
+from erp.modules.payroll import pdf_report
 from erp.modules.payroll.domain import email as validate_email
 
 LEASE_SECONDS = 15 * 60
@@ -115,7 +116,7 @@ def deliver(job, run):
     employee = job.get('employee')
     if not employee or run.get('status') != 'Validada' or run.get('branch') != job.get('branch') or sum(line.get('employee') == employee for line in run.get('lines', [])) != 1:
         raise ValueError('El envío requiere el reporte de un único empleado de la sucursal.')
-    attachment = payroll.report(run, employee)
+    attachment = pdf_report.report(run, employee)
     provider = os.environ.get('ERP_PAYROLL_MAIL_PROVIDER', 'smtp')
     if provider not in ('smtp', 'brevo'):
         raise ValueError('Proveedor de correo no soportado.')
@@ -129,7 +130,7 @@ def deliver(job, run):
     message['From'], message['To'], message['Subject'] = sender, recipient, job['subject']
     message['Message-ID'] = f'<payroll-{job["id"]}-{job["attempt"]}@{sender.split("@")[-1]}>'
     message.set_content(f'Hola {job["name"]},\n\nContabilidad aprobó tu reporte salarial de {run["month"]}. Adjuntamos únicamente tu detalle individual.\n\nEste reporte no acredita una transferencia ni un pago ejecutado. Para observaciones, contacta a Contabilidad.\n\nMulticine Universal')
-    message.add_attachment(attachment, maintype='text', subtype='html', filename=f'reporte-salarial-{run["month"]}.html')
+    message.add_attachment(attachment, maintype='application', subtype='pdf', filename=f'reporte-salarial-{run["month"]}.pdf')
     mode = os.environ.get('ERP_SMTP_SECURITY', 'starttls')
     host = os.environ['ERP_SMTP_HOST']
     port = int(os.environ.get('ERP_SMTP_PORT', '465' if mode == 'ssl' else '587'))
