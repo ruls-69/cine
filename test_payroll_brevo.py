@@ -32,7 +32,7 @@ class BrevoPayrollTests(unittest.TestCase):
                                      'ERP_BREVO_FROM_EMAIL':'sender@example.invalid',
                                      'ERP_BREVO_FROM_NAME':'CINe Contabilidad'}):
             with patch.object(brevo, 'urlopen', return_value=context) as send:
-                result=brevo.send(job,run,'employee@example.invalid',b'<html>one employee</html>')
+                result=brevo.send(job,run,'employee@example.invalid',b'%PDF-1.4 test one employee')
         self.assertEqual(result,'test-message-id')
         request=send.call_args.args[0]
         self.assertEqual(request.full_url,'https://api.brevo.com/v3/smtp/email')
@@ -41,8 +41,9 @@ class BrevoPayrollTests(unittest.TestCase):
         self.assertEqual(payload['to'],[{'email':'employee@example.invalid'}])
         self.assertEqual(payload['sender']['email'],'sender@example.invalid')
         self.assertEqual(base64.b64decode(payload['attachment'][0]['content']),
-                         b'<html>one employee</html>')
+                         b'%PDF-1.4 test one employee')
         self.assertEqual(len(payload['attachment']),1)
+        self.assertTrue(payload['attachment'][0]['name'].endswith('.pdf'))
         self.assertEqual(request.get_header('Api-key'),'not-a-real-secret')
 
     def test_brevo_http_unauthorized_is_safely_recorded(self):
