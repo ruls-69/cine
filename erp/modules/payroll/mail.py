@@ -14,6 +14,7 @@ import ssl
 import threading
 import time
 from email.message import EmailMessage
+from urllib.error import HTTPError, URLError
 
 from erp.modules.payroll import presentation as payroll
 from erp.modules.payroll import brevo
@@ -181,6 +182,14 @@ class MailWorker:
         try:
             deliver(job, run)
             status, error = 'Enviado', ''
+        except HTTPError as exc:
+            # Record only the numeric HTTP status: never log API response bodies,
+            # request headers, addresses, or report contents.
+            status, error = 'Revisar envío', f'Brevo HTTP {int(exc.code)}. Verifica la cuenta y la API antes de reintentar.'
+        except brevo.MissingMessageIdError:
+            status, error = 'Revisar envío', 'Brevo respondió sin un identificador messageId.'
+        except URLError:
+            status, error = 'Revisar envío', 'No se pudo completar la conexión HTTPS con Brevo.'
         except Exception:
             status, error = 'Revisar envío', UNCERTAIN
         self.pending_result = (job, status, error)

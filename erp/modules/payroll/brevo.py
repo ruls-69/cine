@@ -6,6 +6,10 @@ from urllib.request import Request, urlopen
 
 ENDPOINT = "https://api.brevo.com/v3/smtp/email"
 
+
+class MissingMessageIdError(RuntimeError):
+    """Brevo response without the expected acceptance identifier."""
+
 def send(job, run, recipient, report):
     payload = {
         "sender": {"email": os.environ["ERP_BREVO_FROM_EMAIL"],
@@ -27,5 +31,5 @@ def send(job, run, recipient, report):
         body = json.loads(response.read(16384))
     message_id = body.get("messageId")
     if not isinstance(message_id, str) or not 0 < len(message_id) <= 300:
-        raise RuntimeError("Brevo no confirmó el identificador de envío.")
+        raise MissingMessageIdError("Brevo no confirmó el identificador de envío.")
     return message_id
