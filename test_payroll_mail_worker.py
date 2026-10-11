@@ -130,7 +130,7 @@ class PayrollMailWorkerTests(unittest.TestCase):
 
     def test_smtp_uses_tls_and_exact_employee_attachment(self):
         job, run = payroll_mail.claim_pending(self.connect, self.now)
-        with patch('erp.modules.payroll.mail.payroll.report', return_value=b'<html>only one employee</html>') as report, patch('erp.modules.payroll.mail.smtplib.SMTP') as constructor:
+        with patch('erp.modules.payroll.mail.pdf_report.report', return_value=b'%PDF-test-individual') as report, patch('erp.modules.payroll.mail.smtplib.SMTP') as constructor:
             smtp = constructor.return_value
             smtp.send_message.return_value = {}
             payroll_mail.deliver(job, run)
@@ -139,6 +139,7 @@ class PayrollMailWorkerTests(unittest.TestCase):
             message = smtp.send_message.call_args.args[0]
             self.assertEqual('one@example.invalid', message['To'])
             self.assertEqual(1, len(list(message.iter_attachments())))
+            self.assertEqual('application/pdf', list(message.iter_attachments())[0].get_content_type())
 
     def test_background_loop_recovers_from_database_failure(self):
         original = payroll_mail.claim_pending
