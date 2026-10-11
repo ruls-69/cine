@@ -4,6 +4,8 @@ import json
 import os
 import unittest
 from unittest.mock import MagicMock, patch
+from urllib.error import HTTPError
+from io import BytesIO
 from erp.modules.payroll import brevo, mail
 
 
@@ -42,6 +44,27 @@ class BrevoPayrollTests(unittest.TestCase):
                          b'<html>one employee</html>')
         self.assertEqual(len(payload['attachment']),1)
         self.assertEqual(request.get_header('Api-key'),'not-a-real-secret')
+
+    def test_brevo_http_unauthorized_is_safely_recorded(self):
+        from test_payroll_mail_worker import PayrollMailWorkerTests
+        fixture = PayrollMailWorkerTests(methodName='test_disabled_worker_never_claims_or_sends')
+        fixture.setUp()
+        try:
+            failure = HTTPError('https://api.brevo.com/v3/smtp/email', 401, 'rejected', {}, BytesIO(b'private response'))
+            with patch.dict(os.environ, {
+                'ERP_PAYROLL_MAIL_PROVIDER':'brevo',
+                'ERP_BREVO_API_KEY':'fake-only',
+                'ERP_BREVO_FROM_EMAIL':'sender@example.invalid',
+                'ERP_PAYROLL_MAIL_ENABLED':'true',
+            }), patch('erp.modules.payroll.mail.deliver', side_effect=failure):
+                mail.MailWorker(fixture.connect, fixture.now).tick()
+            job = fixture.read()['payrollMail'][0]
+            self.assertEqual(job['status'], 'Revisar envío')
+            self.assertIn('HTTP 401', job['error'])
+            self.assertNotIn('private response', job['error'])
+            self.assertNotIn('fake-only', job['error'])
+        finally:
+            fixture.tearDown()
 
     def test_invalid_brevo_response_does_not_claim_delivery(self):
         response=MagicMock()
