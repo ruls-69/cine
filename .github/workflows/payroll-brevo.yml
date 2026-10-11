@@ -1,0 +1,28 @@
+name: Payroll Brevo integration tests
+
+on:
+  push:
+    branches:
+      - feat/brevo-payroll-https-20261010
+  pull_request:
+    paths:
+      - 'erp/modules/payroll/**'
+      - 'test_payroll_brevo.py'
+      - 'test_payroll_mail_worker.py'
+
+permissions:
+  contents: read
+
+jobs:
+  payroll-mail:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Verify offline payroll email unit tests
+        env:
+          ERP_PAYROLL_MAIL_ENABLED: 'false'
+          ERP_PAYROLL_MAIL_PROVIDER: smtp
+        run: python -m unittest test_payroll_brevo.py test_payroll_mail_worker.py -v

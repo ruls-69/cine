@@ -16,6 +16,7 @@ import time
 from email.message import EmailMessage
 
 from erp.modules.payroll import presentation as payroll
+from erp.modules.payroll import brevo
 from erp.modules.payroll.domain import email as validate_email
 
 LEASE_SECONDS = 15 * 60
@@ -25,8 +26,14 @@ UNCERTAIN = 'No se pudo confirmar la entrega al servidor de correo. Revisa la cu
 
 
 def configured():
-    return os.environ.get('ERP_PAYROLL_MAIL_ENABLED') == 'true' and all(
-        os.environ.get(key) for key in ('ERP_SMTP_HOST', 'ERP_SMTP_USER', 'ERP_SMTP_PASSWORD', 'ERP_SMTP_FROM'))
+    if os.environ.get('ERP_PAYROLL_MAIL_ENABLED') != 'true':
+        return False
+    provider = os.environ.get('ERP_PAYROLL_MAIL_PROVIDER', 'smtp')
+    if provider == 'brevo':
+        return all(os.environ.get(key) for key in ('ERP_BREVO_API_KEY', 'ERP_BREVO_FROM_EMAIL'))
+    if provider == 'smtp':
+        return all(os.environ.get(key) for key in ('ERP_SMTP_HOST', 'ERP_SMTP_USER', 'ERP_SMTP_PASSWORD', 'ERP_SMTP_FROM'))
+    return False
 
 
 def _load(db):
@@ -108,9 +115,15 @@ def deliver(job, run):
     if not employee or run.get('status') != 'Validada' or run.get('branch') != job.get('branch') or sum(line.get('employee') == employee for line in run.get('lines', [])) != 1:
         raise ValueError('El envío requiere el reporte de un único empleado de la sucursal.')
     attachment = payroll.report(run, employee)
-    sender, recipient = validate_email(os.environ['ERP_SMTP_FROM']), validate_email(job['recipient'])
+    provider = os.environ.get('ERP_PAYROLL_MAIL_PROVIDER', 'smtp')
+    if provider not in ('smtp', 'brevo'):
+        raise ValueError('Proveedor de correo no soportado.')
+    sender_key = 'ERP_BREVO_FROM_EMAIL' if provider == 'brevo' else 'ERP_SMTP_FROM'
+    sender, recipient = validate_email(os.environ[sender_key]), validate_email(job['recipient'])
     if not sender or not recipient:
         raise ValueError('Remitente o destinatario vacío.')
+    if provider == 'brevo':
+        return brevo.send(job, run, recipient, attachment)
     message = EmailMessage()
     message['From'], message['To'], message['Subject'] = sender, recipient, job['subject']
     message['Message-ID'] = f'<payroll-{job["id"]}-{job["attempt"]}@{sender.split("@")[-1]}>'
