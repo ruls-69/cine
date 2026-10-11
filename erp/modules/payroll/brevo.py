@@ -18,7 +18,7 @@ def send(job, run, recipient, report):
         "subject": job["subject"],
         "textContent": (f"Hola {job['name']},\n\nContabilidad aprobó tu reporte salarial de {run['month']}."
                         "\nAdjuntamos tu detalle individual. Este reporte no acredita un pago."),
-        "attachment": [{"name": f"reporte-salarial-{run['month']}.html",
+        "attachment": [{"name": f"reporte-salarial-{run['month']}.pdf",
                         "content": base64.b64encode(report).decode("ascii")}],
     }
     request = Request(ENDPOINT, data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
