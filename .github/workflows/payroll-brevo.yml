@@ -21,8 +21,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
+      - name: Install PDF engine
+        run: python -m pip install reportlab==4.4.9
       - name: Verify offline payroll email unit tests
         env:
           ERP_PAYROLL_MAIL_ENABLED: 'false'
           ERP_PAYROLL_MAIL_PROVIDER: smtp
-        run: python -m unittest test_payroll_brevo.py test_payroll_mail_worker.py -v
+        run: python -m unittest test_payroll_brevo.py test_payroll_mail_worker.py test_payroll_pdf.py -v
