@@ -4,6 +4,8 @@ The local and cloud servers use the same request handler and domain services.
 No socket or secondary HTTP server is created by this adapter.
 """
 import atexit
+import os
+import threading
 import io
 import logging
 from email.message import Message
@@ -93,4 +95,8 @@ server.init()
 _mail_stop = server.payroll_mail.start(server.connect, server.now)
 if _mail_stop is not None:
     atexit.register(_mail_stop.set)
+if os.environ.get('ERP_APPS_SCRIPT_PING_ON_START') == 'true':
+    from erp.modules.payroll.apps_script import startup_ping
+    threading.Thread(target=startup_ping, daemon=True, name='apps-script-ping').start()
+
 application = application_request
