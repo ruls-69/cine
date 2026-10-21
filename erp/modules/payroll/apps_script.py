@@ -12,6 +12,7 @@ import logging
 import os
 import re
 import secrets
+from urllib.error import HTTPError
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
@@ -94,6 +95,10 @@ def startup_ping():
             LOGGER.warning("CINe Apps Script: ping HMAC AUTORIZADO; correo DESACTIVADO.")
         else:
             LOGGER.warning("CINe Apps Script: ping sin confirmación. Correo DESACTIVADO.")
+    except HTTPError as error:
+        # Never log Google response bodies, authorization URLs, or HMAC values.
+        LOGGER.warning("CINe Apps Script: ping rechazado HTTP %d. Correo DESACTIVADO.",
+                       int(error.code))
     except Exception as error:
         LOGGER.warning("CINe Apps Script: ping fallido (%s). Correo DESACTIVADO.",
                        type(error).__name__)
