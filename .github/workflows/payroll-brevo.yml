@@ -1,4 +1,4 @@
-name: Payroll Brevo integration tests
+name: Payroll mail transport tests
 
 on:
   push:
@@ -9,6 +9,7 @@ on:
       - 'erp/modules/payroll/**'
       - 'test_payroll_brevo.py'
       - 'test_payroll_mail_worker.py'
+      - 'test_apps_script_ping.py'
 
 permissions:
   contents: read
@@ -27,4 +28,4 @@ jobs:
         env:
           ERP_PAYROLL_MAIL_ENABLED: 'false'
           ERP_PAYROLL_MAIL_PROVIDER: smtp
-        run: python -m unittest test_payroll_brevo.py test_payroll_mail_worker.py test_payroll_pdf.py -v
+        run: python -m unittest test_payroll_brevo.py test_payroll_mail_worker.py test_payroll_pdf.py test_apps_script_ping.py -v
