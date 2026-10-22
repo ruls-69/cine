@@ -1,11 +1,17 @@
 """Inventory commands operate within the caller transaction."""
 from erp.modules.inventory.domain import active
+import secrets
 from erp.shared.domain.records import require, number, text_value, find
 def execute(state,user,action,data,branch,*,now,uid):
     result={}
     if action=='product':
         kind=data.get('kind'); require(kind in ['candy','vault'],'Inventario inválido.'); require(not active(state,branch,kind),'Inventario bloqueado por arqueo.')
-        state['products'].append(dict(id=uid(),branch=branch,kind=kind,name=text_value(data.get('name')),unit=text_value(data.get('unit')),price=number(data.get('price'),0.01),stock=0))
+        # Human-facing four-digit SKU, distinct from the stable internal record ID.
+        used={str(p.get('code','')).zfill(4) for p in state['products'] if p['branch']==branch and p['kind']==kind}
+        available=[f'{i:04d}' for i in range(1,10000) if f'{i:04d}' not in used]
+        require(bool(available),'No quedan códigos disponibles para esta sucursal.')
+        sku=secrets.choice(available)
+        state['products'].append(dict(id=uid(),code=sku,branch=branch,kind=kind,name=text_value(data.get('name')),unit=text_value(data.get('unit')),price=number(data.get('price'),0.01),stock=0))
     elif action in ['stock','report']:
         p=find(state,'products',data.get('item')); require(p['branch']==branch,'Producto de otra sucursal.'); require(action!='report' or p['kind']=='vault','Administración solo reporta movimientos de bóveda.'); require(action!='stock' or p['kind']=='candy','En bóveda, Administración reporta y Contabilidad valida.')
         q=number(data.get('quantity'),1,True); direction=data.get('direction'); require(direction in ['in','out'],'Movimiento inválido.'); delta=q if direction=='in' else -q
