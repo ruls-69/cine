@@ -69,6 +69,7 @@ def visible(state,user):
     if user['role']=='accounting': output['staffAccounts']=accounts.public_accounts(state)
     return output
 
+from erp.modules.cash.presentation import blind_receipt
 from erp.modules.ticketing.printing import print_order as dispatch_print
 
 PRINT_LOCK=threading.Lock()
@@ -95,7 +96,7 @@ class Handler(HttpHandler):
             repository=repository, operations=operations,
             identity=Identity(auth_store(),accounts.UserDirectory(repository,USERS),SessionPolicy(SESSION_IDLE_SECONDS,SESSION_MAX_SECONDS,LOGIN_WINDOW_SECONDS,LOGIN_MAX_ATTEMPTS),clock=time.time,verify_password=auth_config.verify_password,auth_version=auth_config.auth_version,unknown_password_work=lambda:hashlib.pbkdf2_hmac('sha256',b'invalid',b'unknown-user-timing',auth_config.ITERATIONS),new_token=lambda:secrets.token_urlsafe(32)),
             catalog=Catalog(repository,BRANCHES,today),
-            documents=Documents(repository,BRANCHES,{'payroll':payroll.report,'candy':candy.receipt,'closing':cash.report,'ticket':ticketing.receipt,'audit':audit_pdf}),
+            documents=Documents(repository,BRANCHES,{'payroll':payroll.report,'candy':candy.receipt,'closing':cash.report,'blind_closing':blind_receipt,'ticket':ticketing.receipt,'audit':audit_pdf}),
             auth_config=auth_config, auth_store=auth_store, session_hash=session_hash,
             USERS=USERS, BRANCHES=BRANCHES, ROOT=ROOT, today=today, now=now,
             SESSION_IDLE_SECONDS=SESSION_IDLE_SECONDS, SESSION_MAX_SECONDS=SESSION_MAX_SECONDS,
