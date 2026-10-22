@@ -5561,7 +5561,8 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 	const userSchema = object({
 		id: string(),
 		role: roleSchema,
-		branch: string().nullable()
+		branch: string().nullable(),
+		mustChangePassword: boolean().optional()
 	});
 	const rowSchema = looseObject({
 		id: string().optional(),
