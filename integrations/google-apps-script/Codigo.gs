@@ -127,21 +127,29 @@ function recibirPDFCINe(datos, p) {
   // El identificador es el de la cola del ERP (persistente entre reintentos).
   // Guardar ANTES de llamar a Gmail: un timeout no provocará doble envío.
   const claveJob = CINE_JOB_PREFIX + datos.requestId;
+  // Enlazar el identificador con el destinatario, operación y PDF.
+  const huellaBytes = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    datos.operation + "|" + permitido.toLowerCase() + "|" +
+    datos.subject + "|" + datos.pdfBase64,
+    Utilities.Charset.UTF_8
+  );
+  const huella = huellaBytes.map(b => ("0" + (b & 255).toString(16)).slice(-2)).join("");
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(12000))
     return {ok: false, estado: "bloqueado"};
 
   try {
     const previo = p.getProperty(claveJob);
-    if (previo === "sent")
+    if (previo === "sent|" + huella)
       return {ok: true, estado: "ya_enviado", requestId: datos.requestId};
     if (previo)
-      return {ok: false, estado: "resultado_incierto"};
+      return {ok: false, estado: "resultado_incierto_o_id_reutilizado"};
 
     if (MailApp.getRemainingDailyQuota() < 1)
       return {ok: false, estado: "sin_cuota"};
 
-    p.setProperty(claveJob, "sending");
+    p.setProperty(claveJob, "sending|" + huella);
   } finally {
     lock.releaseLock();
   }
@@ -158,7 +166,7 @@ function recibirPDFCINe(datos, p) {
       name: "Multicine Universal - CINe",
       attachments: [adjunto]
     });
-    p.setProperty(claveJob, "sent");
+    p.setProperty(claveJob, "sent|" + huella);
     return {ok: true, estado: "enviado", requestId: datos.requestId};
   } catch (_) {
     // Mantener "sending": no sabemos si Gmail llegó a aceptar el mensaje.
