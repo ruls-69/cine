@@ -103,6 +103,8 @@ class HttpHandler(SimpleHTTPRequestHandler):
                 identity={k:user[k] for k in ['id','role','branch']}
                 identity['mustChangePassword']=limited
                 return self.respond(200,dict(user=identity,branches=self.services.BRANCHES,today=self.services.today(),serverTime=stamp,state=projected),headers={'ETag':etag})
+            if user.get('mustChangePassword'):
+                return self.respond(403,{'error':'Activa tu cuenta antes de consultar documentos.'})
             routes={'/api/payroll-report/':'payroll','/api/candy-receipt/':'candy','/api/closing/':'closing','/api/receipt/':'ticket','/api/pdf/':'audit'}
             kind=next((kind for prefix,kind in routes.items() if path.startswith(prefix)),None)
             if kind:
