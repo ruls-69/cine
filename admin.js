@@ -5776,10 +5776,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 		}
 		function reports() {
 			let form = "";
-			if (ctx.model.user.role === "administrator") {
-				ctx.kind = "vault";
-				form = `<section class="panel"><div class="panel-head"><div><h2>Reportar movimientos</h2><small>Contabilidad valida cada entrada o salida antes de actualizar las existencias.</small></div>${ctx.uiDialogButton("reportMovement", "Reportar entrada o salida", movementForm("report", ctx.list("audits").some((a) => a.kind === "vault" && a.status === "En curso")), "＋ Nuevo reporte", true)}</div></section>`;
-			}
+			if (ctx.model.user.role === "administrator") form = "<section class=\"panel\"><h2>Control físico de boletería</h2><p>Hoja de cálculo manual por película, formato y precio. No revela ventas registradas.</p><a class=\"button\" href=\"/api/ticket-worksheet/today\" target=\"_blank\" rel=\"noopener\">Imprimir control manual de boletos ↗</a></section>";
 			return ctx.candyRequests() + form + `<section class="panel"><div class="panel-head"><h2>Movimientos y validaciones</h2><label class="search-field">Buscar reporte<input type="search" data-filter-table="movementRecords" placeholder="Producto, estado o usuario…"></label></div><div id="movementRecords">${ctx.table([
 				"Fecha / usuario",
 				"Producto",
@@ -5850,7 +5847,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 			return (ctx.model.state.cashOpenings || []).slice().reverse().find((o) => o.user === ctx.model.user.id && !o.closed);
 		}
 		function cashClosed() {
-			return !currentCash() && ctx.list("closures").some((c) => c.user === ctx.model.user.id);
+			return !currentCash();
 		}
 		function openingPanel() {
 			return cashClosed() ? "<div class=\"banner\">Caja cerrada. <button type=\"button\" data-open-cash=\"yes\">Abrir nueva caja</button></div>" : "";
@@ -5914,7 +5911,8 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 		function closures() {
 			const user = ctx.model.user, seller = ["candy", "ticketing"].includes(user.role), own = cashClosed() ? ctx.list("closures").slice().reverse().find((c) => c.user === user.id) : null;
 			let form = "";
-			if (seller) {
+			if (seller && user.role === "ticketing") form = `<section class="panel cash-header"><h2>Cierre de caja a ciegas</h2><p>Cuenta físicamente el efectivo; no se muestran ventas ni saldo esperado. Contabilidad realizará la conciliación.</p>${own ? `<p>${ctx.badge(own.status)} · Declarado: ${ctx.money(own.declaredPhysical ?? own.physical)}</p><a class="button" target="_blank" href="/api/closing/${own.id}">Imprimir constancia de entrega ↗</a>` : `<form data-action="close" class="form-grid">${ctx.field("Efectivo contado · BOB", "physical", "number", "", "min=\"0\" step=\"0.01\"")}<label>Observaciones<input name="note" maxlength="300"></label><button class="primary">Cerrar caja y entregar efectivo</button></form>`}</section>`;
+			if (seller && user.role !== "ticketing") {
 				const d = own?.detail || cashSummary();
 				form = `<section class="panel cash-header"><div class="panel-head"><div><p class="eyebrow">CIERRE DIARIO · ${ctx.esc(ctx.roles[user.role])}</p><h2>1. Revisa tu caja</h2></div>${ctx.badge(own ? own.status : "Caja abierta")}</div><div class="cash-metrics"><article><small>Ventas del día</small><strong>${ctx.money(d.salesTotal)}</strong><span>${d.quantity} ${user.role === "ticketing" ? "boletos cobrados" : "unidades vendidas"}</span></article><article><small>Otros ingresos</small><strong>${ctx.money(d.incomeTotal)}</strong><span>Fondos y entradas adicionales</span></article><article><small>Egresos</small><strong>${ctx.money(d.expenseTotal)}</strong><span>Retiros y salidas de efectivo</span></article><article class="accent"><small>Saldo esperado</small><strong>${ctx.money(own?.expected ?? d.expected)}</strong><span>Ventas + ingresos − egresos</span></article></div>${own ? `<p class="muted">Caja cerrada. Los importes y movimientos quedaron guardados para su revisión.</p><a class="button" target="_blank" href="/api/closing/${own.id}">Imprimir reporte de cierre ↗</a>` : `<div class="cash-buttons"><button data-cash-direction="in">＋ Registrar ingreso</button><button data-cash-direction="out">− Registrar egreso</button></div><p class="muted small">Registra aquí el fondo inicial, reposiciones o retiros. Estos movimientos modifican el efectivo esperado, sin sumarse a las ventas.</p>`}</section><section class="panel"><div class="panel-head"><h2>Movimientos de efectivo</h2><small>${ctx.esc(ctx.model.today)} · ${ctx.esc(user.id)}</small></div>${d.movements.length ? ctx.table([
 					"Hora",
@@ -5922,8 +5920,9 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 					"Referencia",
 					"Importe"
 				], d.movements.map((m) => `<tr><td>${ctx.esc(m.at.slice(11, 19))}</td><td><strong>${m.direction === "in" ? "Ingreso" : "Egreso"}</strong><small>${ctx.esc(m.reason)}${m.voided ? " · ANULADO: " + ctx.esc(m.voidReason) : ""}</small></td><td>${ctx.esc(m.reference) || "—"}</td><td class="${m.direction === "in" ? "amount" : "negative"}">${m.direction === "in" ? "+" : "−"} ${ctx.money(m.total)}</td></tr>`)) : "<p class=\"muted\">No hay ingresos ni egresos adicionales registrados hoy.</p>"}</section>`;
-				if (!own) form += `<section class="panel"><p class="eyebrow">CONCILIACIÓN Y ENTREGA</p><h2>2. Cuenta el efectivo</h2><p class="muted">Cuenta el efectivo que entregarás. El sistema compara ese importe con el saldo esperado y conserva cualquier sobrante o faltante.</p><form data-action="close" class="form-grid">${ctx.field("Efectivo físico contado · BOB", "physical", "number", "", "min=\"0\" step=\"0.01\"")}<label>Observaciones<input name="note" maxlength="300" placeholder="Detalle de entrega o diferencia"></label><div class="cash-reconcile"><small>Saldo esperado</small><b>${ctx.money(cashSummary().expected)}</b><small>Diferencia = contado − esperado</small><strong id="cashDifference">Ingresa el efectivo contado</strong></div><button class="primary">3. Confirmar cierre →</button></form><p class="muted small">Al cerrar se bloquean las ventas, ingresos y egresos hasta una nueva apertura. Contabilidad verificará la entrega. Las ventas anticipadas se incluyen en el día del cobro.</p></section>`;
+				if (!own && user.role !== "ticketing") form += `<section class="panel"><p class="eyebrow">CONCILIACIÓN Y ENTREGA</p><h2>2. Cuenta el efectivo</h2><p class="muted">Cuenta el efectivo que entregarás. El sistema compara ese importe con el saldo esperado y conserva cualquier sobrante o faltante.</p><form data-action="close" class="form-grid">${ctx.field("Efectivo físico contado · BOB", "physical", "number", "", "min=\"0\" step=\"0.01\"")}<label>Observaciones<input name="note" maxlength="300" placeholder="Detalle de entrega o diferencia"></label><div class="cash-reconcile"><small>Saldo esperado</small><b>${ctx.money(cashSummary().expected)}</b><small>Diferencia = contado − esperado</small><strong id="cashDifference">Ingresa el efectivo contado</strong></div><button class="primary">3. Confirmar cierre →</button></form><p class="muted small">Al cerrar se bloquean las ventas, ingresos y egresos hasta una nueva apertura. Contabilidad verificará la entrega. Las ventas anticipadas se incluyen en el día del cobro.</p></section>`;
 			}
+			if (user.role === "ticketing") return (seller && !currentCash() ? openingPanel() : "") + form;
 			return (seller && !currentCash() ? openingPanel() : "") + form + cashLedger() + `<section class="panel"><div class="panel-head"><h2>Historial de cierres</h2><label class="search-field">Buscar cierre<input type="search" data-filter-table="closingRecords" placeholder="Fecha, usuario o estado…"></label></div><div id="closingRecords">${ctx.table([
 				"Día / usuario",
 				"Sucursal",
@@ -6178,6 +6177,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 		}
 		function printStatus(o) {
 			const p = o.printing, waiting = ["pending", "sending"].includes(p?.status), repeat = ["queued", "uncertain"].includes(p?.status);
+			if (closed()) return "<p class=\"muted\">Caja cerrada: la impresión está bloqueada.</p>";
 			return `<p class="${[
 				"pending",
 				"sending",
@@ -6186,13 +6186,13 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 			].includes(p?.status) ? "muted" : "negative"}">${ctx.esc(p?.message || "Impresión pendiente.")}</p>${p?.status === "manual" ? "" : `<button data-print-order="${o.id}" data-print-repeat="${repeat}" ${waiting ? "disabled" : ""}>${waiting ? "Esperando impresión…" : repeat ? "Reimprimir entradas" : "Enviar a la Epson"}</button>`}`;
 		}
 		function receiptHTML() {
-			return receipt ? `<section class="panel ticket-success"><p class="eyebrow">VENTA FINALIZADA</p><h2>${ctx.money(receipt.total)} · ${receipt.lines.reduce((n, r) => n + r.quantity, 0)} boletos</h2><p>Comprobante ${ctx.esc(receipt.id)}${receipt.change !== null ? " · Cambio: " + ctx.money(receipt.change) : ""}</p><a class="button primary" href="/api/receipt/${receipt.id}" target="_blank" rel="noopener">Ver entradas individuales ↗</a>${printStatus(receipt)}<button id="ticketNew">Nueva venta</button></section>` : "";
+			return closed() ? "" : receipt ? `<section class="panel ticket-success"><p class="eyebrow">VENTA FINALIZADA</p><h2>${ctx.money(receipt.total)} · ${receipt.lines.reduce((n, r) => n + r.quantity, 0)} boletos</h2><p>Comprobante ${ctx.esc(receipt.id)}${receipt.change !== null ? " · Cambio: " + ctx.money(receipt.change) : ""}</p><a class="button primary" href="/api/receipt/${receipt.id}" target="_blank" rel="noopener">Ver entradas individuales ↗</a>${printStatus(receipt)}<button id="ticketNew">Nueva venta</button></section>` : "";
 		}
 		function render() {
 			ensure();
 			if (receipt) receipt = (ctx.model.state.orders || []).find((order) => order.id === receipt.id) || receipt;
 			const dates = [.../* @__PURE__ */ new Set([ctx.model.today, ...shows().map((s) => s.date)])];
-			return `${closed() ? "<div class=\"banner warning\">Tu caja de hoy está cerrada. Puedes consultar y reimprimir tus ventas.</div>" : ""}${!shows().some((s) => s.date === ctx.model.today) ? "<div class=\"banner\">No hay funciones programadas para hoy. Puedes vender anticipadamente las próximas funciones.</div>" : ""}${receiptHTML()}<div id="ticketProgress">${progressHTML()}</div><div class="pos-section-heading"><div><h2>Elige la película y el horario</h2><p class="muted">${ctx.esc(ctx.branch)} · Boletos para hoy y próximas funciones</p></div><a class="button subtle-inline" href="#ticketReceipts">Mis comprobantes ↓</a></div><div class="ticket-layout"><section><div class="panel ticket-filters"><label>Fecha de la función<select id="ticketDate">${dates.map((d) => `<option value="${d}" ${d === date ? "selected" : ""}>${ctx.esc(prettyDate(d))}${d === ctx.model.today ? " · Hoy" : ""}</option>`).join("")}</select></label><label>Buscar película<input id="ticketSearch" type="search" value="${ctx.esc(query)}" placeholder="Busca por título" autocomplete="off"></label></div><div id="ticketGrid" class="ticket-grid">${gridHTML()}</div></section><section id="ticketCart" class="panel ticket-cart" tabindex="-1" aria-label="Resumen de venta">${cartHTML()}</section></div>${dockHTML()}<section class="panel pos-receipts" id="ticketReceipts"><div class="panel-head"><div><p class="eyebrow">VENTAS REGISTRADAS</p><h2>Mis comprobantes</h2></div></div>${ctx.table([
+			return `${closed() ? "<div class=\"banner warning\">Caja cerrada: solo se muestra la cartelera y los precios. Abre caja para realizar operaciones.</div>" : ""}${!shows().some((s) => s.date === ctx.model.today) ? "<div class=\"banner\">No hay funciones programadas para hoy. Puedes vender anticipadamente las próximas funciones.</div>" : ""}${receiptHTML()}<div id="ticketProgress">${progressHTML()}</div><div class="pos-section-heading"><div><h2>Elige la película y el horario</h2><p class="muted">${ctx.esc(ctx.branch)} · Boletos para hoy y próximas funciones</p></div><a class="button subtle-inline" href="#ticketReceipts">Mis comprobantes ↓</a></div><div class="ticket-layout"><section><div class="panel ticket-filters"><label>Fecha de la función<select id="ticketDate">${dates.map((d) => `<option value="${d}" ${d === date ? "selected" : ""}>${ctx.esc(prettyDate(d))}${d === ctx.model.today ? " · Hoy" : ""}</option>`).join("")}</select></label><label>Buscar película<input id="ticketSearch" type="search" value="${ctx.esc(query)}" placeholder="Busca por título" autocomplete="off"></label></div><div id="ticketGrid" class="ticket-grid">${gridHTML()}</div></section><section id="ticketCart" class="panel ticket-cart" tabindex="-1" aria-label="Resumen de venta">${cartHTML()}</section></div>${dockHTML()}<section class="panel pos-receipts" id="ticketReceipts" ${closed() ? "hidden" : ""}><div class="panel-head"><div><p class="eyebrow">VENTAS REGISTRADAS</p><h2>Mis comprobantes</h2></div></div>${ctx.table([
 				"Fecha de venta",
 				"Comprobante",
 				"Boletos",
@@ -6306,7 +6306,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 				return;
 			}
 			if (b.dataset.printOrder) {
-				if (working) return;
+				if (working || closed()) return;
 				const repeat = b.dataset.printRepeat === "true";
 				if (repeat && !confirm("Revisa si los boletos ya salieron. ¿Enviar otra copia de todas las entradas?")) return;
 				working = true;
@@ -6902,10 +6902,8 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 			"history"
 		],
 		administrator: [
-			"overview",
 			"inventory",
 			"reports",
-			"closures",
 			"history"
 		],
 		ticketing: ["pos", "closures"],
