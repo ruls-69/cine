@@ -7120,6 +7120,9 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 			"Acciones"
 		], people.map((u) => `<tr><td>${esc(u.id)}</td><td>${esc(roles[u.role] || u.role)} · ${esc(u.branch)}</td><td>${u.active ? "Activa" : "Desactivada"}</td><td>${u.active ? `<form class="compact" data-action="user_disable" data-branch="${esc(u.branch)}"><input type="hidden" name="username" value="${esc(u.id)}"><button>Desactivar</button></form><form class="compact" data-action="user_reset_password" data-branch="${esc(u.branch)}"><input type="hidden" name="username" value="${esc(u.id)}"><button>Restablecer contraseña</button></form>` : `<form class="compact" data-action="user_enable" data-branch="${esc(u.branch)}"><input type="hidden" name="username" value="${esc(u.id)}"><button>Activar</button></form>`}</td></tr>`))}</section>`;
 	}
+	function firstLogin() {
+		$("#root").innerHTML = `<main class="login"><section class="intro"><h1>Activar cuenta de CINe</h1><p>Antes de trabajar, cambia la contraseña inicial por una de uso personal.</p><form id="firstPasswordForm"><label>Contraseña provisional<input type="password" name="currentPassword" autocomplete="current-password" required></label><label>Nueva contraseña (12 caracteres como mínimo)<input type="password" name="newPassword" autocomplete="new-password" minlength="12" maxlength="256" required></label><button class="primary">Guardar nueva contraseña</button></form><button id="logout">Cerrar sesión</button></section></main>`;
+	}
 	function payroll() {
 		return features.payrollUI ? features.payrollUI.render() : "Cargando salarios…";
 	}
@@ -7163,6 +7166,10 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 	}
 	function refreshView() {
 		dirty = false;
+		if (model?.user?.mustChangePassword) {
+			firstLogin();
+			return;
+		}
 		render();
 		calculate();
 		schedulePreview();
@@ -7617,6 +7624,16 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 				await api("login", Object.fromEntries(new FormData(form)));
 				page = null;
 				await refresh(true);
+				return;
+			}
+			if (form.id === "firstPasswordForm") {
+				await api("password-change", Object.fromEntries(new FormData(form)));
+				model = null;
+				page = null;
+				lastState = "";
+				sessionClient.invalidate();
+				login();
+				notify("Contraseña actualizada. Inicia sesión nuevamente.");
 				return;
 			}
 			if (form.dataset.ticketForm || form.dataset.candyForm) return;
