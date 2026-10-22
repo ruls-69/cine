@@ -11,6 +11,8 @@ def visible(state,user,*,users,mail_configured):
         if collection=='trailers' and user['role']!='manager': continue
         if user['role']=='administrator' and collection in ('sales','orders','candyOrders','cashMovements','cashOpenings','closures'):
             rows=[]
+        if user['role']=='administrator' and collection=='log':
+            rows=[r for r in rows if r.get('action') in ('report','review','audit_start','audit_finish','audit_save','stock','product')]
         rows=[r for r in rows if not r.get('deleted') and (user['branch'] is None or r['branch']==user['branch'])]
         if user['role'] in ['ticketing','candy']:
             if collection in ['sales','closures','orders','cashMovements','cashOpenings']: rows=[r for r in rows if r['user']==user['id']]
