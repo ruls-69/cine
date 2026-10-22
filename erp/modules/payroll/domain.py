@@ -227,7 +227,36 @@ def mutate(state,user,action,data,branch,at):
         recipient=email(data.get('email'));cinema.check(bool(recipient),'Completa el correo del empleado.')
         if job['status']=='Revisar envío':cinema.check(data.get('retry')=='yes','Comprueba primero que el correo anterior no llegó; el resultado del envío es incierto.')
         job.setdefault('history',[]).append(dict(at=at,by=user['id'],recipient=job['recipient'],status=job['status']))
+        # Editing the recipient always cancels any prior authorization.
         job.update(recipient=recipient,status='Pendiente de conectar correo',updated=at)
+        for key in ('approvedAt','approvedBy','approvedRecipient','approvedRunFingerprint'):
+            job.pop(key,None)
+    elif action=='payroll_mail_authorize':
+        job=get(state,'payrollMail',data.get('id'),branch)
+        cinema.check(job['status']=='Pendiente de conectar correo',
+                     'Solo puedes autorizar un reporte pendiente, sin intentos previos.')
+        cinema.check(not job.get('approvedAt'),'Este reporte ya fue autorizado.')
+        run=get(state,'payrollRuns',job['run'],branch)
+        cinema.check(run['status']=='Validada',
+                     'La planilla debe estar validada antes de autorizar el envío.')
+        cinema.check(data.get('confirm')=='yes',
+                     'Confirma expresamente el destinatario del reporte individual.')
+        recipient=email(job.get('recipient'))
+        cinema.check(bool(recipient),'Completa primero el correo del empleado.')
+        cinema.check(sum(line.get('employee')==job.get('employee') for line in run.get('lines',[]))==1,
+                     'El reporte debe corresponder a un único empleado.')
+        cinema.check(job.get('subject')==f'Reporte salarial {run["month"]} · Multicine Universal',
+                     'El asunto del envío no coincide con la planilla.')
+        job.update(approvedAt=at,approvedBy=user['id'],
+                   approvedRecipient=recipient,approvedRunFingerprint=run.get('fingerprint',''))
+        job.setdefault('history',[]).append(dict(at=at,by=user['id'],action='autorizar_entrega',recipient=recipient))
+    elif action=='payroll_mail_revoke':
+        job=get(state,'payrollMail',data.get('id'),branch)
+        cinema.check(job['status']=='Pendiente de conectar correo' and job.get('approvedAt'),
+                     'Solo se puede revocar un reporte autorizado que aún no se está enviando.')
+        job.setdefault('history',[]).append(dict(at=at,by=user['id'],action='revocar_entrega'))
+        for key in ('approvedAt','approvedBy','approvedRecipient','approvedRunFingerprint'):
+            job.pop(key,None)
     elif action=='payroll_reopen':
         run=get(state,'payrollRuns',data.get('id'),branch)
         cinema.check(run['status']=='Validada','Solo se puede corregir una planilla validada.')
