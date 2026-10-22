@@ -33,7 +33,7 @@ def configured():
         return False
     provider = os.environ.get('ERP_PAYROLL_MAIL_PROVIDER', 'smtp')
     if provider == 'apps_script':
-        return all(os.environ.get(k) for k in ('ERP_APPS_SCRIPT_URL', 'ERP_APPS_SCRIPT_HMAC_SECRET', 'ERP_APPS_SCRIPT_ALLOWED_RECIPIENTS')) and os.environ.get('ERP_APPS_SCRIPT_REAL_DELIVERY_ENABLED') == 'true'
+        return all(os.environ.get(k) for k in ('ERP_APPS_SCRIPT_URL', 'ERP_APPS_SCRIPT_HMAC_SECRET')) and os.environ.get('ERP_APPS_SCRIPT_REAL_DELIVERY_ENABLED') == 'true'
     if provider == 'brevo':
         return all(os.environ.get(key) for key in ('ERP_BREVO_API_KEY', 'ERP_BREVO_FROM_EMAIL'))
     if provider == 'smtp':
@@ -94,7 +94,7 @@ def claim_pending(connect, now, enabled=True):
                 if job['status'] != 'Pendiente de conectar correo' or not job.get('recipient'):
                     continue
                 # Do not release old, unapproved pending payroll when mail is enabled.
-                if not job.get('approvedAt') or not job.get('approvedBy'):
+                if not job.get('dispatchRequestedAt') or not job.get('dispatchRequestedBy'):\n                    continue\n                if not job.get('approvedAt') or not job.get('approvedBy'):
                     continue
                 if job.get('approvedRecipient') != job.get('recipient'):
                     continue
@@ -125,7 +125,7 @@ def deliver(job, run):
     employee = job.get('employee')
     if not employee or run.get('status') != 'Validada' or run.get('branch') != job.get('branch') or sum(line.get('employee') == employee for line in run.get('lines', [])) != 1:
         raise ValueError('El envío requiere el reporte de un único empleado de la sucursal.')
-    if not job.get('approvedAt') or not job.get('approvedBy') or job.get('approvedRecipient') != job.get('recipient') or job.get('approvedRunFingerprint') != run.get('fingerprint', ''):
+    if not job.get('dispatchRequestedAt') or not job.get('dispatchRequestedBy') or not job.get('approvedAt') or not job.get('approvedBy') or job.get('approvedRecipient') != job.get('recipient') or job.get('approvedRunFingerprint') != run.get('fingerprint', ''):
         raise ValueError('La entrega individual no está autorizada o la planilla ha cambiado.')
     attachment = pdf_report.report(run, employee)
     provider = os.environ.get('ERP_PAYROLL_MAIL_PROVIDER', 'smtp')
@@ -137,7 +137,7 @@ def deliver(job, run):
     if provider == 'apps_script':
         request = apps_script.prepare_test_pdf_request(job, run, recipient, attachment,
             url=os.environ['ERP_APPS_SCRIPT_URL'], secret=os.environ['ERP_APPS_SCRIPT_HMAC_SECRET'],
-            allowed_recipient=os.environ['ERP_APPS_SCRIPT_ALLOWED_RECIPIENTS'])
+            allowed_recipient=None)
         return apps_script.send_prepared_pdf_request(request, expected_id=job['id'])
     sender_key = 'ERP_BREVO_FROM_EMAIL' if provider == 'brevo' else 'ERP_SMTP_FROM'
     sender = validate_email(os.environ[sender_key])
