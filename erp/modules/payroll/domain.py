@@ -53,7 +53,9 @@ def lateness(employee,punches,worked_days,daily):
     if not policy['enabled']:return Decimal(0),rows,policy
     scheduled=parse_time(policy['start'])
     for day in sorted(worked_days):
-        first=min(p['absolute']%86400 for p in punches if p['date']==day)
+        on_day=[p for p in punches if p['date']==day]
+        if not on_day: continue  # An authorized paid-day exception has no synthetic clock-in.
+        first=min(p['absolute']%86400 for p in on_day)
         delay=max(0,first-scheduled)
         chosen=None
         for tier in policy['tiers']:
@@ -161,7 +163,7 @@ def calculate(state,source,mapping):
         credits=[x for x in state.get('payrollAttendanceCredits',[]) if x['branch']==source['branch'] and x['month']==period and x['employee']==e['id'] and not x.get('voided')]
         credited_dates={x['date'] for x in credits}
         worked_regular=(worked|credited_dates)&scheduled;missing=scheduled-worked-credited_dates;worked_rest=worked&rest_dates
-        if not punches:issues.append(dict(row='—',message=f'{e["name"]}: sin marcaciones válidas; sueldo devengado cero'))
+        if not punches and not credited_dates:issues.append(dict(row='—',message=f'{e["name"]}: sin marcaciones válidas; sueldo devengado cero'))
         extras=[dict(id=x['id'],date=x['date'],reason=x['reason'],amount=x['amount'],extraType=x.get('extraType','special')) for x in state['payrollExtras'] if x['branch']==source['branch'] and x['month']==period and e['id'] in x['employees'] and not x['voided']]
         for extra in extras:
             if extra['extraType']=='day':
