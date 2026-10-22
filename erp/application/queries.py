@@ -8,6 +8,8 @@ def visible(state,user,*,users,mail_configured):
         if collection in ('printJobs','staffAccounts'): continue
         if collection.startswith('payroll') and user['role']!='accounting':continue
         if collection=='trailers' and user['role']!='manager': continue
+        if user['role']=='administrator' and collection in ('sales','orders','candyOrders','cashMovements','cashOpenings','closures'):
+            rows=[]
         rows=[r for r in rows if not r.get('deleted') and (user['branch'] is None or r['branch']==user['branch'])]
         if user['role'] in ['ticketing','candy']:
             if collection in ['sales','closures','orders','cashMovements','cashOpenings']: rows=[r for r in rows if r['user']==user['id']]
