@@ -98,7 +98,11 @@ class HttpHandler(SimpleHTTPRequestHandler):
                 if self.headers.get('If-None-Match')==etag:
                     self.send_response(304);self.send_header('Cache-Control','no-store');self.send_header('ETag',etag);self.end_headers();return
                 state=json.loads(raw)
-                return self.respond(200,dict(user={k:user[k] for k in ['id','role','branch']},branches=self.services.BRANCHES,today=self.services.today(),serverTime=stamp,state=self.services.visible(state,user)),headers={'ETag':etag})
+                limited=bool(user.get('mustChangePassword'))
+                projected=self.services.visible(state,user) if not limited else dict(products=[],shows=[],sales=[],reports=[],audits=[],closures=[],log=[],users=[],availability={},occupied={})
+                identity={k:user[k] for k in ['id','role','branch']}
+                identity['mustChangePassword']=limited
+                return self.respond(200,dict(user=identity,branches=self.services.BRANCHES,today=self.services.today(),serverTime=stamp,state=projected),headers={'ETag':etag})
             routes={'/api/payroll-report/':'payroll','/api/candy-receipt/':'candy','/api/closing/':'closing','/api/receipt/':'ticket','/api/pdf/':'audit'}
             kind=next((kind for prefix,kind in routes.items() if path.startswith(prefix)),None)
             if kind:
