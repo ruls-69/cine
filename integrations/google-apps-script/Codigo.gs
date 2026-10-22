@@ -1,9 +1,9 @@
 /**
- * CINe-Correo — Google Apps Script (fase de demostración).
+ * CINe-Correo — receptor firmado para envío individual.
  *
  * Desplegar como Web App: Ejecutar como «Yo», acceso «Cualquiera».
  * El endpoint es público; NUNCA confíes en su URL como autenticación.
- * Solo se admite el Gmail propietario y una solicitud HMAC válida.
+ * Los envíos reales aceptan exclusivamente solicitudes HMAC del servidor CINe.
  * No pegar secretos en este archivo ni publicarlos en GitHub.
  */
 
@@ -88,23 +88,17 @@ function recibirPDFCINe(datos, p) {
   if (real && p.getProperty("CINE_REAL_DELIVERY_ENABLED") !== "true")
     return {ok: false, estado: "entrega_real_desactivada"};
 
-  let permitidos;
-  if (real) {
-    try {
-      permitidos = JSON.parse(p.getProperty("CINE_ALLOWED_RECIPIENTS") || "[]");
-    } catch (_) {
-      return {ok: false, estado: "lista_destinatarios_invalida"};
-    }
-    if (!Array.isArray(permitidos) || permitidos.length > 100 ||
-        !permitidos.every(x => typeof x === "string" && x.length < 255))
-      return {ok: false, estado: "lista_destinatarios_invalida"};
-  } else {
-    permitidos = [p.getProperty("CINE_TEST_RECIPIENT")];
-  }
+  // Envío real: Render incluye el destinatario aprobado en el cuerpo firmado.
+  // No se mantiene una lista manual de correos en Script Properties.
+  // La validación HMAC se realiza antes de llegar a esta función.
   if (typeof datos.recipient !== "string" ||
-      !permitidos.some(x => x && x.toLowerCase() === datos.recipient.trim().toLowerCase()))
-    return {ok: false, estado: "destinatario_no_permitido"};
+      datos.recipient.length > 254 ||
+      !/^[^\\s@<>]+@[^\\s@<>]+\\.[^\\s@<>]+$/.test(datos.recipient.trim()))
+    return {ok: false, estado: "destinatario_invalido"};
   const permitido = datos.recipient.trim();
+  if (!real && permitido.toLowerCase() !==
+      String(p.getProperty("CINE_TEST_RECIPIENT") || "").toLowerCase())
+    return {ok: false, estado: "destinatario_no_permitido"};
 
   if (typeof datos.subject !== "string" ||
       !/^Reporte salarial 20\d{2}-(0[1-9]|1[0-2]) · Multicine Universal$/.test(datos.subject) ||
