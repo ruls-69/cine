@@ -38,6 +38,7 @@ REQUIRED_FIELDS = {
     'payrollDeleted': 'kind record at by',
     'printJobs': 'orderId user terminal status at order',
     'staffAccounts': 'role passwordHash mustChangePassword active createdAt createdBy',
+    'payrollAttendanceCredits': 'employee month date reason by at',
 }
 
 
