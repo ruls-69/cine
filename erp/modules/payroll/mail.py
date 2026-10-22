@@ -18,6 +18,7 @@ from urllib.error import HTTPError, URLError
 
 from erp.modules.payroll import presentation as payroll
 from erp.modules.payroll import brevo
+from erp.modules.payroll import apps_script
 from erp.modules.payroll import pdf_report
 from erp.modules.payroll.domain import email as validate_email
 
@@ -31,6 +32,8 @@ def configured():
     if os.environ.get('ERP_PAYROLL_MAIL_ENABLED') != 'true':
         return False
     provider = os.environ.get('ERP_PAYROLL_MAIL_PROVIDER', 'smtp')
+    if provider == 'apps_script':
+        return all(os.environ.get(k) for k in ('ERP_APPS_SCRIPT_URL', 'ERP_APPS_SCRIPT_HMAC_SECRET', 'ERP_APPS_SCRIPT_TEST_RECIPIENT'))
     if provider == 'brevo':
         return all(os.environ.get(key) for key in ('ERP_BREVO_API_KEY', 'ERP_BREVO_FROM_EMAIL'))
     if provider == 'smtp':
@@ -118,12 +121,20 @@ def deliver(job, run):
         raise ValueError('El envío requiere el reporte de un único empleado de la sucursal.')
     attachment = pdf_report.report(run, employee)
     provider = os.environ.get('ERP_PAYROLL_MAIL_PROVIDER', 'smtp')
-    if provider not in ('smtp', 'brevo'):
+    if provider not in ('smtp', 'brevo', 'apps_script'):
         raise ValueError('Proveedor de correo no soportado.')
+    recipient = validate_email(job['recipient'])
+    if not recipient:
+        raise ValueError('Destinatario vacío.')
+    if provider == 'apps_script':
+        request = apps_script.prepare_test_pdf_request(job, run, recipient, attachment,
+            url=os.environ['ERP_APPS_SCRIPT_URL'], secret=os.environ['ERP_APPS_SCRIPT_HMAC_SECRET'],
+            allowed_recipient=os.environ['ERP_APPS_SCRIPT_TEST_RECIPIENT'])
+        return apps_script.send_prepared_pdf_request(request, expected_id=job['id'])
     sender_key = 'ERP_BREVO_FROM_EMAIL' if provider == 'brevo' else 'ERP_SMTP_FROM'
-    sender, recipient = validate_email(os.environ[sender_key]), validate_email(job['recipient'])
-    if not sender or not recipient:
-        raise ValueError('Remitente o destinatario vacío.')
+    sender = validate_email(os.environ[sender_key])
+    if not sender:
+        raise ValueError('Remitente vacío.')
     if provider == 'brevo':
         return brevo.send(job, run, recipient, attachment)
     message = EmailMessage()
@@ -186,7 +197,9 @@ class MailWorker:
         except HTTPError as exc:
             # Record only the numeric HTTP status: never log API response bodies,
             # request headers, addresses, or report contents.
-            status, error = 'Revisar envío', f'Brevo HTTP {int(exc.code)}. Verifica la cuenta y la API antes de reintentar.'
+            provider = os.environ.get('ERP_PAYROLL_MAIL_PROVIDER', 'smtp')
+            label = 'Apps Script' if provider == 'apps_script' else 'Brevo'
+            status, error = 'Revisar envío', f'{label} HTTP {int(exc.code)}. Verifica la configuración antes de reintentar.'
         except brevo.MissingMessageIdError:
             status, error = 'Revisar envío', 'Brevo respondió sin un identificador messageId.'
         except URLError:
