@@ -5,9 +5,16 @@ on:
     branches:
       - fix/payroll-ui-bundle-20261022
       - feat/payroll-web-managed-mail-20261022
+      - refactor/cine-integral-audit-20261022
   pull_request:
     paths:
       - 'src/**'
+      - 'admin.css'
+      - 'styles.css'
+      - 'pos.css'
+      - 'payroll.css'
+      - 'reports.css'
+      - 'design-tokens.css'
       - 'scripts/build_frontend.mjs'
       - 'package.json'
       - 'package-lock.json'
@@ -58,5 +65,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - run: npm run typecheck
+      - run: npm run test
+      - run: npm run lint
       - name: Reject stale generated frontend bundles
         run: git diff --exit-code -- admin.js app.js trailers.js ui.js
