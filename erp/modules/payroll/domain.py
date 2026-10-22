@@ -274,6 +274,24 @@ def mutate(state,user,action,data,branch,at):
         job.update(approvedAt=at,approvedBy=user['id'],
                    approvedRecipient=recipient,approvedRunFingerprint=run.get('fingerprint',''))
         job.setdefault('history',[]).append(dict(at=at,by=user['id'],action='autorizar_entrega',recipient=recipient))
+    elif action=='payroll_mail_dispatch':
+        job=get(state,'payrollMail',data.get('id'),branch)
+        cinema.check(job['status']=='Pendiente de conectar correo',
+                     'Este envío ya fue iniciado, completado o requiere revisión.')
+        run=get(state,'payrollRuns',job['run'],branch)
+        cinema.check(run['status']=='Validada','La planilla ya no está validada.')
+        cinema.check(data.get('confirm')=='yes','Confirma expresamente el envío inmediato.')
+        cinema.check(job.get('approvedAt') and job.get('approvedBy') and
+                     job.get('approvedRecipient')==job.get('recipient') and
+                     job.get('approvedRunFingerprint')==run.get('fingerprint',''),
+                     'Autoriza primero el reporte y su destinatario exacto.')
+        cinema.check(sum(line.get('employee')==job.get('employee') for line in run.get('lines',[]))==1,
+                     'El reporte debe pertenecer a un único empleado.')
+        # Approval alone never triggers the worker; dispatch is a separate deliberate action.
+        cinema.check(not job.get('dispatchRequestedAt'),'Este envío ya fue solicitado.')
+        job.update(dispatchRequestedAt=at,dispatchRequestedBy=user['id'])
+        job.setdefault('history',[]).append(dict(at=at,by=user['id'],
+                                                  action='solicitar_entrega_individual'))
     elif action=='payroll_mail_revoke':
         job=get(state,'payrollMail',data.get('id'),branch)
         cinema.check(job['status']=='Pendiente de conectar correo' and job.get('approvedAt'),
