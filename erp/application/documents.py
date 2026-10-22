@@ -35,8 +35,8 @@ class Documents:
         privileged=user['role'] in ['manager','accounting']
         allowed=False
         if row:
-            if kind=='candy': allowed=privileged or user['role'] in ['candy','administrator'] and row['branch']==user['branch']
-            if kind=='closing': allowed=privileged or row['user']==user['id'] or user['role']=='administrator' and row['branch']==user['branch']
+            if kind=='candy': allowed=privileged or user['role']=='candy' and row['branch']==user['branch']
+            if kind=='closing': allowed=privileged or row['user']==user['id'] 
             if kind=='ticket': allowed=privileged or user['role']=='ticketing' and row['user']==user['id'] and row['branch']==user['branch']
         if not allowed:
             raise PermissionError({'candy':'No tienes acceso a este recibo.','closing':'No tienes acceso a este cierre.','ticket':'No tienes acceso a este comprobante.'}[kind])
