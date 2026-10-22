@@ -50,6 +50,11 @@ def void_movement(state,user,data,branch,at):
     row=next((m for m in state.get('cashMovements',[]) if m['id']==data.get('id')),None)
     cinema.check(row is not None and row['branch']==branch,'Movimiento no disponible en esta sucursal.')
     cinema.check(not row.get('voided'),'Este movimiento ya fue anulado.')
+    cinema.check(not row.get('closureId') and not any(
+        x['user']==row['user'] and x.get('cashSession','')==row.get('cashSession','')
+        and (bool(row.get('cashSession')) or x.get('day')==row.get('day'))
+        for x in state.get('closures',[])),
+        'Este movimiento pertenece a un cierre archivado; no se puede alterar su monto esperado.')
     reason=cinema.text(data.get('reason'),300)
     row.update(voided=True,voidReason=reason,voidBy=user['id'],voidAt=at)
     for close in state['closures']:
