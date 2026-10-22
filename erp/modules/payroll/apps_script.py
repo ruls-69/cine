@@ -82,7 +82,7 @@ def prepare_test_pdf_request(job, run, recipient, pdf, *, url, secret, allowed_r
     if not re.fullmatch(r"[A-Za-z0-9_-]{16,80}", job.get("id", "")):
         raise ValueError("Identificador de envío inválido.")
     period = run.get("month")
-    if not isinstance(period, str) or not re.fullmatch(r"20\\d{2}-(0[1-9]|1[0-2])", period):
+    if not isinstance(period, str) or not re.fullmatch(r"20\d{2}-(0[1-9]|1[0-2])", period):
         raise ValueError("Periodo salarial inválido.")
     if job.get("subject") != f"Reporte salarial {period} · Multicine Universal":
         raise ValueError("Asunto de correo fuera de formato.")
