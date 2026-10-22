@@ -1,6 +1,7 @@
 """Role-filtered read models, excluding private operational data."""
 from erp.modules.catalog import domain as cinema
 from erp.modules.inventory.domain import active
+from erp.modules.cash.domain import can_sell
 
 def visible(state,user,*,users,mail_configured):
     output={}
@@ -20,11 +21,9 @@ def visible(state,user,*,users,mail_configured):
             rows=[dict({k:v for k,v in r.items() if k!='stock'},available=r['stock']>0) for r in rows]
         if user['role']=='ticketing' and collection=='closures':
             rows=[{k:v for k,v in r.items() if k not in ('expected','difference','detail','revisions')} for r in rows]
-        if user['role']=='ticketing' and collection=='orders' and not any(
-                o.get('user')==user['id'] and not o.get('closed') for o in state.get('cashOpenings',[])):
+        if user['role']=='ticketing' and collection=='orders' and not can_sell(state,user['id']):
             rows=[]
-        if user['role']=='ticketing' and collection=='sales' and not any(
-                o.get('user')==user['id'] and not o.get('closed') for o in state.get('cashOpenings',[])):
+        if user['role']=='ticketing' and collection=='sales' and not can_sell(state,user['id']):
             rows=[]
         if collection=='sales': rows=[r for r in rows if not r.get('voided')]
         if collection in ['candyOrders','candyRequests'] and user['role']=='ticketing':rows=[]
