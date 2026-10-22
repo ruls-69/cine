@@ -10,6 +10,8 @@ on:
       - 'test_payroll_brevo.py'
       - 'test_payroll_mail_worker.py'
       - 'test_apps_script_ping.py'
+      - 'test_apps_script_pdf.py'
+      - 'integrations/google-apps-script/**'
 
 permissions:
   contents: read
@@ -28,4 +30,4 @@ jobs:
         env:
           ERP_PAYROLL_MAIL_ENABLED: 'false'
           ERP_PAYROLL_MAIL_PROVIDER: smtp
-        run: python -m unittest test_payroll_brevo.py test_payroll_mail_worker.py test_payroll_pdf.py test_apps_script_ping.py -v
+        run: python -m unittest test_payroll_brevo.py test_payroll_mail_worker.py test_payroll_pdf.py test_apps_script_ping.py test_apps_script_pdf.py -v

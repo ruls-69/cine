@@ -59,6 +59,48 @@ def _signed_ping_request(url, secret, *, timestamp=None, request_id=None):
                                           "Accept": "application/json"}, method="POST")
 
 
+def prepare_test_pdf_request(job, run, recipient, pdf, *, url, secret, allowed_recipient, timestamp=None):
+    """Prepare an authenticated, test-only PDF request without transmitting it.
+
+    Reject every recipient except the explicitly configured personal test mailbox.
+    The ERP worker still controls when a message may be delivered.
+    """
+    _valid_webapp_url(url)
+    if not isinstance(secret, str) or len(secret) < 32:
+        raise ValueError("Clave HMAC no configurada.")
+    if not isinstance(pdf, bytes) or not pdf.startswith(b"%PDF-") or len(pdf) > 950000:
+        raise ValueError("PDF inválido o demasiado grande.")
+    if not isinstance(recipient, str) or not isinstance(allowed_recipient, str):
+        raise ValueError("Destinatario inválido.")
+    if not allowed_recipient or recipient.strip().casefold() != allowed_recipient.strip().casefold():
+        raise ValueError("Destinatario no permitido para pruebas.")
+    if run.get("status") != "Validada" or job.get("run") != run.get("id"):
+        raise ValueError("La planilla no está validada o no corresponde al reporte.")
+    employee = job.get("employee")
+    if not employee or sum(line.get("employee") == employee for line in run.get("lines", [])) != 1:
+        raise ValueError("El PDF debe pertenecer a un único empleado.")
+    if not re.fullmatch(r"[A-Za-z0-9_-]{16,80}", job.get("id", "")):
+        raise ValueError("Identificador de envío inválido.")
+    period = run.get("month")
+    if not isinstance(period, str) or not re.fullmatch(r"20\\d{2}-(0[1-9]|1[0-2])", period):
+        raise ValueError("Periodo salarial inválido.")
+    if job.get("subject") != f"Reporte salarial {period} · Multicine Universal":
+        raise ValueError("Asunto de correo fuera de formato.")
+    timestamp = timestamp or datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+    data = {"operation": "send_test_pdf", "requestId": job["id"], "timestamp": timestamp,
+            "recipient": recipient.strip(), "subject": job["subject"],
+            "filename": f"reporte-salarial-{period}.pdf",
+            "pdfBase64": base64.b64encode(pdf).decode("ascii")}
+    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    signature = base64.urlsafe_b64encode(
+        hmac.new(secret.encode("utf-8"), payload.encode("utf-8"), hashlib.sha256).digest()
+    ).decode("ascii")
+    body = json.dumps({"payload": payload, "signature": signature},
+                      ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    return Request(url, data=body, headers={"Content-Type": "application/json",
+                                          "Accept": "application/json"}, method="POST")
+
+
 def ping(*, url=None, secret=None, opener=None):
     """Send a single read-only signed ping and verify the returned JSON.
 
