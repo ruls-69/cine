@@ -253,7 +253,7 @@ def mutate(state,user,action,data,branch,at):
         job.setdefault('history',[]).append(dict(at=at,by=user['id'],recipient=job['recipient'],status=job['status']))
         # Editing the recipient always cancels any prior authorization.
         job.update(recipient=recipient,status='Pendiente de conectar correo',updated=at)
-        for key in ('approvedAt','approvedBy','approvedRecipient','approvedRunFingerprint'):
+        for key in ('approvedAt','approvedBy','approvedRecipient','approvedRunFingerprint','dispatchRequestedAt','dispatchRequestedBy'):
             job.pop(key,None)
     elif action=='payroll_mail_authorize':
         job=get(state,'payrollMail',data.get('id'),branch)
@@ -294,7 +294,7 @@ def mutate(state,user,action,data,branch,at):
                                                   action='solicitar_entrega_individual'))
     elif action=='payroll_mail_revoke':
         job=get(state,'payrollMail',data.get('id'),branch)
-        cinema.check(job['status']=='Pendiente de conectar correo' and job.get('approvedAt'),
+        cinema.check(job['status']=='Pendiente de conectar correo' and job.get('approvedAt') and not job.get('dispatchRequestedAt'),
                      'Solo se puede revocar un reporte autorizado que aún no se está enviando.')
         job.setdefault('history',[]).append(dict(at=at,by=user['id'],action='revocar_entrega'))
         for key in ('approvedAt','approvedBy','approvedRecipient','approvedRunFingerprint'):
