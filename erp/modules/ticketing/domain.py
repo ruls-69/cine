@@ -31,7 +31,7 @@ def checkout(state,user,data,day,at):
     check(received is None or Decimal(str(received))>=total,'El importe recibido es menor que el total a cobrar.')
     order=dict(id=order_id,requestId=request,branch=user['branch'],user=user['id'],day=day,at=at,lines=pending,total=float(total),received=received,change=round(received-float(total),2) if received is not None else None)
     for line in pending:
-        state['sales'].append(dict(id=secrets.token_hex(6),orderId=order_id,branch=user['branch'],user=user['id'],area='ticketing',day=day,at=at,item=line['item'],label=f'{line["title"]} · {line["date"]} {line["time"]}',quantity=line['quantity'],seatQuantity=line['seatQuantity'],unitPrice=line['unitPrice'],total=line['total'],seats=[]))
+        state['sales'].append(dict(id=secrets.token_hex(6),orderId=order_id,branch=user['branch'],user=user['id'],area='ticketing',day=day,at=at,item=line['item'],label=f'{line["title"]} · {line["date"]} {line["time"]}',quantity=line['quantity'],seatQuantity=line['seatQuantity'],unitPrice=line['unitPrice'],format=line['format'],total=line['total'],seats=[]))
     orders.append(order)
     return {'order':order,'repeated':False}
 
