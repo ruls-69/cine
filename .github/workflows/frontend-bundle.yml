@@ -1,0 +1,61 @@
+name: Frontend build consistency
+
+on:
+  push:
+    branches:
+      - fix/payroll-ui-bundle-20261022
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'scripts/build_frontend.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'admin.js'
+      - 'app.js'
+      - 'trailers.js'
+      - 'ui.js'
+      - 'admin.html'
+      - '.github/workflows/frontend-bundle.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  rebuild:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Commit regenerated public bundles to this fix branch
+        run: |
+          git add admin.js app.js trailers.js ui.js
+          if git diff --cached --quiet; then
+            echo "Frontend bundles already current."
+          else
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "build(frontend): regenerate public JavaScript bundles"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+
+  verify:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Reject stale generated frontend bundles
+        run: git diff --exit-code -- admin.js app.js trailers.js ui.js
