@@ -7,7 +7,7 @@ def active(state,user):
     return next((o for o in reversed(state.get('cashOpenings',[])) if o['user']==user and not o.get('closed')),None)
 
 def can_sell(state,user):
-    return active(state,user) is not None or not any(c['user']==user for c in state['closures'])
+    return active(state,user) is not None or not any(c['user']==user for c in state.get('closures',[]))
 
 def opening(state,user,data,day,at):
     cinema.check(active(state,user['id']) is None,'Ya tienes una caja abierta.')
