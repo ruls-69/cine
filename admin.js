@@ -6803,17 +6803,26 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 				"Revisar envío"
 			].includes(j.status)) ? "<p class=\"muted small\">Hay envíos realizados o inciertos; esta planilla se conserva sin cambios.</p>" : `<form data-action="payroll_reopen" data-id="${r.id}" data-branch="${ctx.esc(r.branch)}" class="inline-form">${ctx.field("Motivo de corrección", "reason", "text", "", "maxlength=\"500\"")}<button>Volver a borrador y cancelar correos pendientes</button></form>`}`}</article>`).join("") || ctx.empty("Calcula una planilla desde el biométrico")}`);
 		}
+		function resendForm(j) {
+			if (!rows("payrollRuns").find((r) => r.id === j.run && r.status === "Validada") || j.status !== "Enviado") return "";
+			if (rows("payrollMail").some((x) => x.run === j.run && x.employee === j.employee && [
+				"Pendiente de conectar correo",
+				"Enviando",
+				"Revisar envío"
+			].includes(x.status))) return "";
+			return `<form class="compact" data-action="payroll_mail_create" data-branch="${ctx.esc(j.branch)}"><input type="hidden" name="run" value="${ctx.esc(j.run)}"><input type="hidden" name="employee" value="${ctx.esc(j.employee)}"><label>Correo para nuevo envío<input type="email" name="email" value="${ctx.esc(j.recipient)}" required></label><label>Motivo del reenvío<input name="reason" maxlength="300" required placeholder="Ej. Solicitud del empleado"></label><label class="payroll-check"><input type="checkbox" name="confirm" value="yes" required><span>Confirmo crear una nueva solicitud; requiere otra autorización individual.</span></label><button>Preparar nuevo envío</button></form>`;
+		}
 		function mail() {
-			return panel("Envío individual de reportes", `<div class="banner">${ctx.model.state.payrollMailConfigured ? "Conexión de correo configurada. Los reportes validados pendientes se envían automáticamente." : "Correo empresarial pendiente de conexión. Los reportes se guardan en espera; no se está enviando ningún correo."}</div><p class="muted">Cada envío contiene únicamente el reporte del empleado destinatario, como archivo imprimible. «Enviado» significa aceptado por el servidor de correo, no confirmación de lectura ni de pago.</p>${ctx.table([
+			return panel("Envío individual de reportes", `<div class="banner">${ctx.model.state.payrollMailConfigured ? "Transporte configurado. Solo los reportes autorizados individualmente pueden entrar en la cola." : "Transporte desactivado. Los reportes quedan pendientes y no se envían correos."}</div><p class="muted">Contabilidad debe confirmar cada destinatario y autorizar individualmente. Los reportes antiguos no se envían al activar el transporte. «Enviado» indica aceptación del servidor, no lectura ni pago.</p>${ctx.table([
 				"Empleado / planilla",
-				"Correo destinatario",
+				"Destinatario",
 				"Estado",
-				"Acción"
-			], rows("payrollMail").slice().reverse().map((j) => `<tr><td>${ctx.esc(j.name)}<small>${ctx.esc(j.subject)}</small></td><td>${ctx.esc(j.recipient) || "Sin correo"}</td><td>${ctx.badge(j.status)}${j.error ? `<small>${ctx.esc(j.error)}</small>` : ""}</td><td>${[
+				"Acciones"
+			], rows("payrollMail").slice().reverse().map((j) => `<tr><td>${ctx.esc(j.name)}<small>${ctx.esc(j.subject)}</small></td><td>${ctx.esc(j.recipient) || "Sin correo"}<small>${j.approvedAt ? "Autorizado por " + ctx.esc(j.approvedBy) + " · " + ctx.esc(j.approvedAt) : "Sin autorización individual"}</small></td><td>${ctx.badge(j.status)}${j.error ? `<small>${ctx.esc(j.error)}</small>` : ""}</td><td>${[
 				"Enviado",
 				"Enviando",
 				"Cancelado por corrección"
-			].includes(j.status) ? ctx.esc(j.finishedAt || j.at) : `<form class="compact" data-action="payroll_mail_update" data-id="${j.id}" data-branch="${ctx.esc(j.branch)}"><label>Correo confirmado<input type="email" name="email" value="${ctx.esc(j.recipient)}" required></label>${j.status === "Revisar envío" ? "<label class=\"payroll-check\"><input type=\"checkbox\" name=\"retry\" value=\"yes\" required><span>Comprobé que no llegó el correo anterior.</span></label>" : ""}<button>Guardar / poner en espera</button></form>`}</td></tr>`))}<details><summary>Conexión del correo empresarial</summary><p class="muted small">La cuenta emisora y sus credenciales se configuran en el servidor, no se guardan en el navegador. Cuando la empresa tenga su correo, se habilitará la conexión segura y después el envío automático. El proveedor debe permitir SMTP autenticado con TLS. Cada intento queda registrado; un envío incierto necesita revisión antes de repetirse.</p></details>`);
+			].includes(j.status) ? `${ctx.esc(j.finishedAt || j.at)}${resendForm(j)}` : `<div class="payroll-mail-controls"><form class="compact" data-action="payroll_mail_update" data-id="${j.id}" data-branch="${ctx.esc(j.branch)}"><label>Correo confirmado<input type="email" name="email" value="${ctx.esc(j.recipient)}" required></label>${j.status === "Revisar envío" ? "<label class=\"payroll-check\"><input type=\"checkbox\" name=\"retry\" value=\"yes\" required><span>Comprobé que no llegó el correo anterior.</span></label>" : ""}<button>Guardar destinatario</button></form>${j.status === "Pendiente de conectar correo" && !j.approvedAt && j.recipient ? `<form class="compact" data-action="payroll_mail_authorize" data-id="${j.id}" data-branch="${ctx.esc(j.branch)}"><label class="payroll-check"><input type="checkbox" name="confirm" value="yes" required><span>Confirmo enviar únicamente el reporte individual a ${ctx.esc(j.recipient)}.</span></label><button class="primary">Autorizar entrega</button></form>` : ""}${j.status === "Pendiente de conectar correo" && j.approvedAt ? `<form class="compact" data-action="payroll_mail_revoke" data-id="${j.id}" data-branch="${ctx.esc(j.branch)}"><button>Revocar autorización</button></form>` : ""}</div>`}</td></tr>`))}<details><summary>Configuración del transporte</summary><p class="muted small">La conexión Render / Apps Script se configura en el servidor. Habilitarla no autoriza los reportes existentes. Revisa cada autorización antes de habilitar el procesamiento.</p></details>`);
 		}
 		controller = { render: () => `<div class="payroll-navigation"><div class="payroll-workflow" aria-label="Proceso de salarios">${[
 			[
