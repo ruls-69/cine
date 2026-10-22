@@ -11,9 +11,12 @@ class AppsScriptWorkerTests(unittest.TestCase):
              "ERP_PAYROLL_MAIL_PROVIDER":"apps_script",
              "ERP_APPS_SCRIPT_URL":"https://script.google.com/macros/s/abcabcabcabcabcabc/exec",
              "ERP_APPS_SCRIPT_HMAC_SECRET":"x"*64,
-             "ERP_APPS_SCRIPT_TEST_RECIPIENT":"owner@example.invalid"}):
+             "ERP_APPS_SCRIPT_ALLOWED_RECIPIENTS":"owner@example.invalid",
+             "ERP_APPS_SCRIPT_REAL_DELIVERY_ENABLED":"false"}):
             self.assertFalse(mail.configured())
             os.environ["ERP_PAYROLL_MAIL_ENABLED"]="true"
+            self.assertFalse(mail.configured())
+            os.environ["ERP_APPS_SCRIPT_REAL_DELIVERY_ENABLED"]="true"
             self.assertTrue(mail.configured())
 
     def test_only_one_employee_pdf_and_one_http_attempt(self):
@@ -24,7 +27,8 @@ class AppsScriptWorkerTests(unittest.TestCase):
                 "ERP_PAYROLL_MAIL_PROVIDER":"apps_script",
                 "ERP_APPS_SCRIPT_URL":"https://script.google.com/macros/s/"+"A"*48+"/exec",
                 "ERP_APPS_SCRIPT_HMAC_SECRET":"testing-"+"x"*64,
-                "ERP_APPS_SCRIPT_TEST_RECIPIENT":"one@example.invalid"}), \
+                "ERP_APPS_SCRIPT_ALLOWED_RECIPIENTS":"one@example.invalid",
+                "ERP_APPS_SCRIPT_REAL_DELIVERY_ENABLED":"true"}), \
                 patch.object(mail.pdf_report,"report",return_value=b"%PDF-1.4 fake") as pdf, \
                 patch.object(apps_script,"send_prepared_pdf_request",return_value="mail-one") as send:
                 job, run=mail.claim_pending(fixture.connect,fixture.now)
