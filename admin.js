@@ -5456,7 +5456,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 		return commandSchema.parse({
 			...fields,
 			action: form.dataset.action,
-			branch: form.dataset.branch || branch,
+			branch: form.dataset.branch || (form.dataset.action === "user_create" ? String(fields["branch"] || "") : branch),
 			id: form.dataset.id,
 			kind: fields["kind"] || kind
 		});
