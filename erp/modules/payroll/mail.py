@@ -94,7 +94,9 @@ def claim_pending(connect, now, enabled=True):
                 if job['status'] != 'Pendiente de conectar correo' or not job.get('recipient'):
                     continue
                 # Do not release old, unapproved pending payroll when mail is enabled.
-                if not job.get('dispatchRequestedAt') or not job.get('dispatchRequestedBy'):\n                    continue\n                if not job.get('approvedAt') or not job.get('approvedBy'):
+                if not job.get('dispatchRequestedAt') or not job.get('dispatchRequestedBy'):
+                    continue
+                if not job.get('approvedAt') or not job.get('approvedBy'):
                     continue
                 if job.get('approvedRecipient') != job.get('recipient'):
                     continue
