@@ -17,6 +17,7 @@ class AppsScriptWorkerTests(unittest.TestCase):
             os.environ["ERP_PAYROLL_MAIL_ENABLED"]="true"
             self.assertFalse(mail.configured())
             os.environ["ERP_APPS_SCRIPT_REAL_DELIVERY_ENABLED"]="true"
+            os.environ.pop("ERP_APPS_SCRIPT_ALLOWED_RECIPIENTS", None)
             self.assertTrue(mail.configured())
 
     def test_only_one_employee_pdf_and_one_http_attempt(self):
