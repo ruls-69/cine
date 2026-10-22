@@ -99,4 +99,8 @@ if os.environ.get('ERP_APPS_SCRIPT_PING_ON_START') == 'true':
     from erp.modules.payroll.apps_script import startup_ping
     threading.Thread(target=startup_ping, daemon=True, name='apps-script-ping').start()
 
+if os.environ.get('ERP_APPS_SCRIPT_DEMO_ON_START') == 'true':
+    from erp.modules.payroll.render_demo import run_once
+    threading.Thread(target=run_once, daemon=True, name='apps-script-pdf-demo').start()
+
 application = application_request
