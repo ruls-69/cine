@@ -84,10 +84,27 @@ function recibirPDFCINe(datos, p) {
   if (p.getProperty("CINE_MAIL_ENABLED") !== "true")
     return {ok: false, estado: "envio_desactivado"};
 
-  const permitido = p.getProperty("CINE_TEST_RECIPIENT");
-  if (!permitido || typeof datos.recipient !== "string" ||
-      datos.recipient.trim().toLowerCase() !== permitido.toLowerCase())
+  const real = datos.operation === "send_employee_pdf";
+  if (real && p.getProperty("CINE_REAL_DELIVERY_ENABLED") !== "true")
+    return {ok: false, estado: "entrega_real_desactivada"};
+
+  let permitidos;
+  if (real) {
+    try {
+      permitidos = JSON.parse(p.getProperty("CINE_ALLOWED_RECIPIENTS") || "[]");
+    } catch (_) {
+      return {ok: false, estado: "lista_destinatarios_invalida"};
+    }
+    if (!Array.isArray(permitidos) || permitidos.length > 100 ||
+        !permitidos.every(x => typeof x === "string" && x.length < 255))
+      return {ok: false, estado: "lista_destinatarios_invalida"};
+  } else {
+    permitidos = [p.getProperty("CINE_TEST_RECIPIENT")];
+  }
+  if (typeof datos.recipient !== "string" ||
+      !permitidos.some(x => x && x.toLowerCase() === datos.recipient.trim().toLowerCase()))
     return {ok: false, estado: "destinatario_no_permitido"};
+  const permitido = datos.recipient.trim();
 
   if (typeof datos.subject !== "string" ||
       !/^Reporte salarial 20\d{2}-(0[1-9]|1[0-2]) · Multicine Universal$/.test(datos.subject) ||
@@ -110,21 +127,29 @@ function recibirPDFCINe(datos, p) {
   // El identificador es el de la cola del ERP (persistente entre reintentos).
   // Guardar ANTES de llamar a Gmail: un timeout no provocará doble envío.
   const claveJob = CINE_JOB_PREFIX + datos.requestId;
+  // Enlazar el identificador con el destinatario, operación y PDF.
+  const huellaBytes = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    datos.operation + "|" + permitido.toLowerCase() + "|" +
+    datos.subject + "|" + datos.pdfBase64,
+    Utilities.Charset.UTF_8
+  );
+  const huella = huellaBytes.map(b => ("0" + (b & 255).toString(16)).slice(-2)).join("");
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(12000))
     return {ok: false, estado: "bloqueado"};
 
   try {
     const previo = p.getProperty(claveJob);
-    if (previo === "sent")
+    if (previo === "sent|" + huella)
       return {ok: true, estado: "ya_enviado", requestId: datos.requestId};
     if (previo)
-      return {ok: false, estado: "resultado_incierto"};
+      return {ok: false, estado: "resultado_incierto_o_id_reutilizado"};
 
     if (MailApp.getRemainingDailyQuota() < 1)
       return {ok: false, estado: "sin_cuota"};
 
-    p.setProperty(claveJob, "sending");
+    p.setProperty(claveJob, "sending|" + huella);
   } finally {
     lock.releaseLock();
   }
@@ -135,12 +160,13 @@ function recibirPDFCINe(datos, p) {
     MailApp.sendEmail({
       to: permitido,
       subject: datos.subject,
-      body: "CINe: reporte salarial individual ficticio para validación técnica. " +
-            "No acredita ningún pago ni transferencia.",
+      body: real
+        ? "Hola, adjuntamos tu reporte salarial individual. Este documento es informativo y no acredita pago ni transferencia."
+        : "CINe: reporte salarial individual ficticio para validación técnica. No acredita ningún pago ni transferencia.",
       name: "Multicine Universal - CINe",
       attachments: [adjunto]
     });
-    p.setProperty(claveJob, "sent");
+    p.setProperty(claveJob, "sent|" + huella);
     return {ok: true, estado: "enviado", requestId: datos.requestId};
   } catch (_) {
     // Mantener "sending": no sabemos si Gmail llegó a aceptar el mensaje.
@@ -156,7 +182,7 @@ function procesarSolicitudCINe(cuerpo) {
     return {ok: true, estado: "autenticado",
             envio: revisada.propiedades.getProperty("CINE_MAIL_ENABLED") === "true"
                    ? "activado" : "desactivado"};
-  if (d.operation !== "send_test_pdf")
+  if (d.operation !== "send_test_pdf" && d.operation !== "send_employee_pdf")
     return {ok: false, estado: "operacion_no_habilitada"};
   return recibirPDFCINe(d, revisada.propiedades);
 }
