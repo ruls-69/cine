@@ -93,9 +93,15 @@ def claim_pending(connect, now, enabled=True):
             for job in state.get('payrollMail', []):
                 if job['status'] != 'Pendiente de conectar correo' or not job.get('recipient'):
                     continue
+                # Do not release old, unapproved pending payroll when mail is enabled.
+                if not job.get('approvedAt') or not job.get('approvedBy'):
+                    continue
+                if job.get('approvedRecipient') != job.get('recipient'):
+                    continue
                 run = runs.get(job.get('run'))
                 if not run or run.get('status') != 'Validada':
-                    # Do not let an orphan or corrected run block subsequent mail.
+                    continue
+                if job.get('approvedRunFingerprint') != run.get('fingerprint', ''):
                     continue
                 employee = job.get('employee')
                 matching = [line for line in run.get('lines', []) if line.get('employee') == employee]
@@ -119,6 +125,8 @@ def deliver(job, run):
     employee = job.get('employee')
     if not employee or run.get('status') != 'Validada' or run.get('branch') != job.get('branch') or sum(line.get('employee') == employee for line in run.get('lines', [])) != 1:
         raise ValueError('El envío requiere el reporte de un único empleado de la sucursal.')
+    if not job.get('approvedAt') or not job.get('approvedBy') or job.get('approvedRecipient') != job.get('recipient') or job.get('approvedRunFingerprint') != run.get('fingerprint', ''):
+        raise ValueError('La entrega individual no está autorizada o la planilla ha cambiado.')
     attachment = pdf_report.report(run, employee)
     provider = os.environ.get('ERP_PAYROLL_MAIL_PROVIDER', 'smtp')
     if provider not in ('smtp', 'brevo', 'apps_script'):
