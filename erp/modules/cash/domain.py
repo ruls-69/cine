@@ -35,7 +35,7 @@ def summary(state,user,day,session=None):
     return dict(salesTotal=revenue,incomeTotal=income,expenseTotal=expense,expected=round(revenue+income-expense,2),quantity=sum(s['quantity'] for s in sales),people=sum(s.get('seatQuantity',s['quantity']) for s in sales),transactions=len({s.get('orderId',s['id']) for s in sales}),sales=sales,movements=moves)
 
 def movement(state,user,data,day,at):
-    cinema.check(can_sell(state,user['id']),'La caja está cerrada. No puedes registrar movimientos.')
+    cinema.check(active(state,user['id']) is not None,'Abre tu caja antes de registrar ingresos o egresos.')
     direction=data.get('direction');cinema.check(direction in ['in','out'],'Movimiento inválido.')
     token=cinema.text(data.get('requestId'),100)
     existing=next((m for m in state.get('cashMovements',[]) if m['user']==user['id'] and m['requestId']==token),None)
