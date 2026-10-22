@@ -5922,7 +5922,14 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 				], d.movements.map((m) => `<tr><td>${ctx.esc(m.at.slice(11, 19))}</td><td><strong>${m.direction === "in" ? "Ingreso" : "Egreso"}</strong><small>${ctx.esc(m.reason)}${m.voided ? " · ANULADO: " + ctx.esc(m.voidReason) : ""}</small></td><td>${ctx.esc(m.reference) || "—"}</td><td class="${m.direction === "in" ? "amount" : "negative"}">${m.direction === "in" ? "+" : "−"} ${ctx.money(m.total)}</td></tr>`)) : "<p class=\"muted\">No hay ingresos ni egresos adicionales registrados hoy.</p>"}</section>`;
 				if (!own && user.role !== "ticketing") form += `<section class="panel"><p class="eyebrow">CONCILIACIÓN Y ENTREGA</p><h2>2. Cuenta el efectivo</h2><p class="muted">Cuenta el efectivo que entregarás. El sistema compara ese importe con el saldo esperado y conserva cualquier sobrante o faltante.</p><form data-action="close" class="form-grid">${ctx.field("Efectivo físico contado · BOB", "physical", "number", "", "min=\"0\" step=\"0.01\"")}<label>Observaciones<input name="note" maxlength="300" placeholder="Detalle de entrega o diferencia"></label><div class="cash-reconcile"><small>Saldo esperado</small><b>${ctx.money(cashSummary().expected)}</b><small>Diferencia = contado − esperado</small><strong id="cashDifference">Ingresa el efectivo contado</strong></div><button class="primary">3. Confirmar cierre →</button></form><p class="muted small">Al cerrar se bloquean las ventas, ingresos y egresos hasta una nueva apertura. Contabilidad verificará la entrega. Las ventas anticipadas se incluyen en el día del cobro.</p></section>`;
 			}
-			if (user.role === "ticketing") return (seller && !currentCash() ? openingPanel() : "") + form;
+			if (user.role === "ticketing") return (seller && !currentCash() ? openingPanel() : "") + form + `<section class="panel"><h2>Constancias de cierres anteriores</h2>
+   ${ctx.table([
+				"Fecha",
+				"Folio",
+				"Importe declarado",
+				"Estado",
+				"Constancia"
+			], ctx.list("closures").slice().reverse().filter((c) => c.user === user.id).map((c) => `<tr><td>${ctx.esc(c.day)}</td><td>${ctx.esc(c.id)}</td><td>${ctx.money(c.declaredPhysical ?? c.physical)}</td><td>${ctx.badge(c.status)}</td><td><a target="_blank" rel="noopener" href="/api/closing/${c.id}">Imprimir constancia ↗</a></td></tr>`))}</section>`;
 			return (seller && !currentCash() ? openingPanel() : "") + form + cashLedger() + `<section class="panel"><div class="panel-head"><h2>Historial de cierres</h2><label class="search-field">Buscar cierre<input type="search" data-filter-table="closingRecords" placeholder="Fecha, usuario o estado…"></label></div><div id="closingRecords">${ctx.table([
 				"Día / usuario",
 				"Sucursal",
