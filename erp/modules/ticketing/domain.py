@@ -12,7 +12,7 @@ def checkout(state,user,data,day,at):
     orders=state.setdefault('orders',[])
     existing=next((o for o in orders if o['user']==user['id'] and o['requestId']==request),None)
     if existing:return {'order':existing,'repeated':True}
-    check(cash.active(state,user['id']) is not None,'Debes abrir la caja manualmente antes de vender boletos.')
+    check(cash.can_sell(state,user['id']),'Tu caja del día está cerrada.')
     lines=data.get('lines');check(isinstance(lines,list) and 1<=len(lines)<=50,'Agrega entre 1 y 50 funciones a la venta.')
     pending=[];seen=set();total=Decimal('0');order_id=secrets.token_hex(8)
     for row in lines:
