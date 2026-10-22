@@ -67,7 +67,7 @@ def prepare_test_pdf_request(job, run, recipient, pdf, *, url, secret, allowed_r
     if not isinstance(pdf, bytes) or not pdf.startswith(b"%PDF-") or len(pdf) > 950000:
         raise ValueError("PDF inválido o demasiado grande.")
     if not isinstance(recipient, str) or not re.fullmatch(
-            r"[^\\s@<>]+@[^\\s@<>]+\\.[^\\s@<>]+", recipient.strip()) or len(recipient) > 254:
+            r"[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+", recipient.strip()) or len(recipient) > 254:
         raise ValueError("Destinatario inválido.")
     if allowed_recipient is not None:
         allowed = {address.strip().casefold() for address in allowed_recipient.split(",") if address.strip()}
