@@ -6190,6 +6190,17 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 		}
 		function render() {
 			ensure();
+			if (closed()) {
+				const upcoming = shows();
+				return `<section class="panel"><div class="banner warning">Caja cerrada. Para vender o imprimir boletos debes realizar la apertura manual.</div><h2>Cartelera y precios</h2><p>Consulta de funciones sin acceso a ventas, comprobantes ni reimpresiones.</p>${upcoming.length ? ctx.table([
+					"Fecha",
+					"Película",
+					"Formato",
+					"Horario",
+					"Sala",
+					"Precio"
+				], upcoming.map((s) => `<tr><td>${ctx.esc(s.date)}</td><td>${ctx.esc(s.title)}</td><td>${ctx.esc(s.format)}</td><td>${ctx.esc(s.time)}</td><td>${ctx.esc(s.room)}</td><td>${ctx.money(s.price)}</td></tr>`)) : "<p>No hay funciones disponibles.</p>"}</section>`;
+			}
 			if (receipt) receipt = (ctx.model.state.orders || []).find((order) => order.id === receipt.id) || receipt;
 			const dates = [.../* @__PURE__ */ new Set([ctx.model.today, ...shows().map((s) => s.date)])];
 			return `${closed() ? "<div class=\"banner warning\">Caja cerrada: solo se muestra la cartelera y los precios. Abre caja para realizar operaciones.</div>" : ""}${!shows().some((s) => s.date === ctx.model.today) ? "<div class=\"banner\">No hay funciones programadas para hoy. Puedes vender anticipadamente las próximas funciones.</div>" : ""}${receiptHTML()}<div id="ticketProgress">${progressHTML()}</div><div class="pos-section-heading"><div><h2>Elige la película y el horario</h2><p class="muted">${ctx.esc(ctx.branch)} · Boletos para hoy y próximas funciones</p></div><a class="button subtle-inline" href="#ticketReceipts">Mis comprobantes ↓</a></div><div class="ticket-layout"><section><div class="panel ticket-filters"><label>Fecha de la función<select id="ticketDate">${dates.map((d) => `<option value="${d}" ${d === date ? "selected" : ""}>${ctx.esc(prettyDate(d))}${d === ctx.model.today ? " · Hoy" : ""}</option>`).join("")}</select></label><label>Buscar película<input id="ticketSearch" type="search" value="${ctx.esc(query)}" placeholder="Busca por título" autocomplete="off"></label></div><div id="ticketGrid" class="ticket-grid">${gridHTML()}</div></section><section id="ticketCart" class="panel ticket-cart" tabindex="-1" aria-label="Resumen de venta">${cartHTML()}</section></div>${dockHTML()}<section class="panel pos-receipts" id="ticketReceipts" ${closed() ? "hidden" : ""}><div class="panel-head"><div><p class="eyebrow">VENTAS REGISTRADAS</p><h2>Mis comprobantes</h2></div></div>${ctx.table([
