@@ -5879,8 +5879,8 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 				"manager",
 				"administrator"
 			].includes(ctx.model.user.role)) return "";
-			const moves = (ctx.model.state.cashMovements || []).filter((m) => ctx.branch === "Todas" || m.branch === ctx.branch).slice().reverse();
-			return `<section class="panel"><h2>Ingresos y egresos de caja</h2><p class="muted small">Movimientos de Boletería y Candy bar. Los anulados se conservan para consulta y no afectan el saldo.</p>${ctx.table([
+			const moves = (ctx.model.state.cashMovements || []).filter((m) => (ctx.branch === "Todas" || m.branch === ctx.branch) && !m.closureId).slice().reverse();
+			return `<section class="panel"><h2>Ingresos y egresos de caja</h2><p class="muted small">Solo movimientos de cajas abiertas. Los movimientos cerrados se conservan en sus reportes históricos.</p>${ctx.table([
 				"Fecha / sucursal",
 				"Cajero / área",
 				"Movimiento",
