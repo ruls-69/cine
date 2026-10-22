@@ -33,7 +33,7 @@ def configured():
         return False
     provider = os.environ.get('ERP_PAYROLL_MAIL_PROVIDER', 'smtp')
     if provider == 'apps_script':
-        return all(os.environ.get(k) for k in ('ERP_APPS_SCRIPT_URL', 'ERP_APPS_SCRIPT_HMAC_SECRET', 'ERP_APPS_SCRIPT_TEST_RECIPIENT')) and os.environ.get('ERP_APPS_SCRIPT_REAL_DELIVERY_ENABLED') == 'true'
+        return all(os.environ.get(k) for k in ('ERP_APPS_SCRIPT_URL', 'ERP_APPS_SCRIPT_HMAC_SECRET', 'ERP_APPS_SCRIPT_ALLOWED_RECIPIENTS')) and os.environ.get('ERP_APPS_SCRIPT_REAL_DELIVERY_ENABLED') == 'true'
     if provider == 'brevo':
         return all(os.environ.get(key) for key in ('ERP_BREVO_API_KEY', 'ERP_BREVO_FROM_EMAIL'))
     if provider == 'smtp':
@@ -129,7 +129,7 @@ def deliver(job, run):
     if provider == 'apps_script':
         request = apps_script.prepare_test_pdf_request(job, run, recipient, attachment,
             url=os.environ['ERP_APPS_SCRIPT_URL'], secret=os.environ['ERP_APPS_SCRIPT_HMAC_SECRET'],
-            allowed_recipient=os.environ['ERP_APPS_SCRIPT_TEST_RECIPIENT'])
+            allowed_recipient=os.environ['ERP_APPS_SCRIPT_ALLOWED_RECIPIENTS'])
         return apps_script.send_prepared_pdf_request(request, expected_id=job['id'])
     sender_key = 'ERP_BREVO_FROM_EMAIL' if provider == 'brevo' else 'ERP_SMTP_FROM'
     sender = validate_email(os.environ[sender_key])
