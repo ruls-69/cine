@@ -44,8 +44,8 @@ class Documents:
             if kind=='candy': allowed=privileged or user['role']=='candy' and row['branch']==user['branch']
             if kind=='closing': allowed=privileged or row['user']==user['id'] 
             if kind=='ticket':
-                from erp.modules.cash.domain import active
-                allowed=privileged or (user['role']=='ticketing' and row['user']==user['id'] and row['branch']==user['branch'] and active(state,user['id']) is not None)
+                from erp.modules.cash.domain import can_sell
+                allowed=privileged or (user['role']=='ticketing' and row['user']==user['id'] and row['branch']==user['branch'] and can_sell(state,user['id']))
         if not allowed:
             raise PermissionError({'candy':'No tienes acceso a este recibo.','closing':'No tienes acceso a este cierre.','ticket':'No tienes acceso a este comprobante.'}[kind])
         if kind=='closing' and user['role']=='ticketing':
