@@ -20,6 +20,12 @@ class Documents:
 
     def get(self, kind, record_id, user, employee=None):
         state=self.repository.read()
+        if kind=='ticket-worksheet':
+            if user['role']!='administrator': raise PermissionError('Solo Administración puede imprimir este control.')
+            from datetime import datetime, timezone, timedelta
+            from erp.modules.ticketing.worksheet import worksheet
+            today=datetime.now(timezone(timedelta(hours=-4))).date().isoformat()
+            return Document(worksheet(user['branch'],today,state.get('shows',[])))
         if kind=='payroll':
             if user['role']!='accounting': raise PermissionError('Solo Contabilidad puede consultar salarios.')
             row=next((r for r in state.get('payrollRuns',[]) if r['id']==record_id),None)
