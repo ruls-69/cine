@@ -84,10 +84,27 @@ function recibirPDFCINe(datos, p) {
   if (p.getProperty("CINE_MAIL_ENABLED") !== "true")
     return {ok: false, estado: "envio_desactivado"};
 
-  const permitido = p.getProperty("CINE_TEST_RECIPIENT");
-  if (!permitido || typeof datos.recipient !== "string" ||
-      datos.recipient.trim().toLowerCase() !== permitido.toLowerCase())
+  const real = datos.operation === "send_employee_pdf";
+  if (real && p.getProperty("CINE_REAL_DELIVERY_ENABLED") !== "true")
+    return {ok: false, estado: "entrega_real_desactivada"};
+
+  let permitidos;
+  if (real) {
+    try {
+      permitidos = JSON.parse(p.getProperty("CINE_ALLOWED_RECIPIENTS") || "[]");
+    } catch (_) {
+      return {ok: false, estado: "lista_destinatarios_invalida"};
+    }
+    if (!Array.isArray(permitidos) || permitidos.length > 100 ||
+        !permitidos.every(x => typeof x === "string" && x.length < 255))
+      return {ok: false, estado: "lista_destinatarios_invalida"};
+  } else {
+    permitidos = [p.getProperty("CINE_TEST_RECIPIENT")];
+  }
+  if (typeof datos.recipient !== "string" ||
+      !permitidos.some(x => x && x.toLowerCase() === datos.recipient.trim().toLowerCase()))
     return {ok: false, estado: "destinatario_no_permitido"};
+  const permitido = datos.recipient.trim();
 
   if (typeof datos.subject !== "string" ||
       !/^Reporte salarial 20\d{2}-(0[1-9]|1[0-2]) · Multicine Universal$/.test(datos.subject) ||
@@ -135,8 +152,9 @@ function recibirPDFCINe(datos, p) {
     MailApp.sendEmail({
       to: permitido,
       subject: datos.subject,
-      body: "CINe: reporte salarial individual ficticio para validación técnica. " +
-            "No acredita ningún pago ni transferencia.",
+      body: real
+        ? "Hola, adjuntamos tu reporte salarial individual. Este documento es informativo y no acredita pago ni transferencia."
+        : "CINe: reporte salarial individual ficticio para validación técnica. No acredita ningún pago ni transferencia.",
       name: "Multicine Universal - CINe",
       attachments: [adjunto]
     });
@@ -156,7 +174,7 @@ function procesarSolicitudCINe(cuerpo) {
     return {ok: true, estado: "autenticado",
             envio: revisada.propiedades.getProperty("CINE_MAIL_ENABLED") === "true"
                    ? "activado" : "desactivado"};
-  if (d.operation !== "send_test_pdf")
+  if (d.operation !== "send_test_pdf" && d.operation !== "send_employee_pdf")
     return {ok: false, estado: "operacion_no_habilitada"};
   return recibirPDFCINe(d, revisada.propiedades);
 }
