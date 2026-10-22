@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const roleSchema = z.enum(['manager', 'accounting', 'administrator', 'ticketing', 'candy']);
-export const userSchema = z.object({ id: z.string(), role: roleSchema, branch: z.string().nullable() });
+export const userSchema = z.object({ id: z.string(), role: roleSchema, branch: z.string().nullable(), mustChangePassword: z.boolean().optional() });
 // Collection records retain feature-specific fields. Consumers validate the
 // command they build separately; this envelope must never coerce server values.
 const rowSchema = z.looseObject({ id: z.string().optional(), branch: z.string().optional() });
