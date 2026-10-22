@@ -45,11 +45,11 @@ def connect():
 
 def init():
     auth_config.validate_environment()
-    cloud_print.validate_config(USERS)
     def upgrade(state):
         cinema.ensure_catalog(state)
         candy.ensure(state)
     storage.initialize(DB, seed, upgrade)
+    cloud_print.validate_config(accounts.load_directory(repository.read(), USERS))
 
 def total_for(state,user,day): return round(sum(x['total'] for x in state['sales'] if x['user']==user and x['day']==day),2)
 from erp.application.commands import mutate as execute_command
@@ -73,7 +73,8 @@ from erp.modules.ticketing.printing import print_order as dispatch_print
 
 PRINT_LOCK=threading.Lock()
 def print_order(order_id,user,reprint=False,request_id=None):
-    return dispatch_print(order_id,user,reprint,request_id,connect=connect,users=USERS,now=now,uid=uid,lock=PRINT_LOCK,production=auth_config.production(),printer=thermal)
+    directory=accounts.load_directory(repository.read(), USERS) if os.environ.get('ERP_PRINT_MODE')=='agent' else USERS
+    return dispatch_print(order_id,user,reprint,request_id,connect=connect,users=directory,now=now,uid=uid,lock=PRINT_LOCK,production=auth_config.production(),printer=thermal)
 
 from erp.presentation.http import HttpHandler
 from erp.infrastructure.state_repository import SqlStateRepository
@@ -103,7 +104,7 @@ class Handler(HttpHandler):
             payroll_report=payroll.report, candy_receipt=candy.receipt,
             cash_report=cash.report, ticket_receipt=ticketing.receipt,
             expire_print_jobs=lambda: cloud_print.expire_jobs(connect),
-            authenticate_agent=lambda token: cloud_print.authenticate(token,USERS),
+            authenticate_agent=lambda token: cloud_print.authenticate(token,accounts.load_directory(repository.read(),USERS)),
             agent_action=lambda agent,action,data: cloud_print.agent_action(connect,agent,action,data))
 
 if __name__=='__main__':
