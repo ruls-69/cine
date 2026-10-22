@@ -37,7 +37,9 @@ class Documents:
         if row:
             if kind=='candy': allowed=privileged or user['role']=='candy' and row['branch']==user['branch']
             if kind=='closing': allowed=privileged or row['user']==user['id'] 
-            if kind=='ticket': allowed=privileged or user['role']=='ticketing' and row['user']==user['id'] and row['branch']==user['branch']
+            if kind=='ticket':
+                from erp.modules.cash.domain import active
+                allowed=privileged or (user['role']=='ticketing' and row['user']==user['id'] and row['branch']==user['branch'] and active(state,user['id']) is not None)
         if not allowed:
             raise PermissionError({'candy':'No tienes acceso a este recibo.','closing':'No tienes acceso a este cierre.','ticket':'No tienes acceso a este comprobante.'}[kind])
         return Document(self.renderers[kind](row))
