@@ -8,8 +8,8 @@ def _read_state_for_print(connect):
         return json.loads(db.execute('SELECT body FROM state WHERE id=1').fetchone()[0])
 
 def print_order(order_id,user,reprint=False,request_id=None,*,connect,users,now,uid,lock,production,printer):
-    from erp.modules.cash.domain import active
-    if active(_read_state_for_print(connect), user['id']) is None:
+    from erp.modules.cash.domain import can_sell
+    if not can_sell(_read_state_for_print(connect), user['id']):
         raise PermissionError('Caja cerrada: abre una nueva sesión para imprimir boletos.')
     mode=os.environ.get('ERP_PRINT_MODE','manual' if production else 'local')
     if mode=='agent': return cloud_print.queue_order(connect,users,order_id,user,reprint,request_id=request_id)
