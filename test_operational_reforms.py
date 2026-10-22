@@ -37,6 +37,16 @@ class OperationalReformsTests(unittest.TestCase):
         internal=report(closed).decode()
         self.assertIn('Resumen de funciones por película',internal)
         self.assertIn('Bs 65.00',internal)
+        close_operations.execute(state,{'id':'accounting','role':'accounting'},
+                                 'close_review',{'id':'closing1','expected':9999,'physical':60,'note':'Revisado'},
+                                 'Potosí',now=lambda:'2026-10-22T12:10:00-04:00',
+                                 today=lambda:'2026-10-22',uid=lambda:'ignored')
+        self.assertEqual(state['closures'][0]['expected'],65)
+        from erp.modules.cash.domain import opening
+        opening(state,user,{'requestId':'reopen-123','amount':0},
+                '2026-10-22','2026-10-22T12:30:00-04:00')
+        self.assertTrue(can_sell(state,user['id']))
+        self.assertEqual(state['cashMovements'][0]['closureId'],'closing1')
 
     def test_inventory_sku_is_four_digit_unique_by_branch(self):
         seq=iter(range(1,10))
