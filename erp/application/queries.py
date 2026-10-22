@@ -18,6 +18,14 @@ def visible(state,user,*,users,mail_configured):
             elif collection in ['reports','log']: rows=[]
         if collection=='products' and user['role']=='candy' and not active(state,user['branch'],'candy'):
             rows=[dict({k:v for k,v in r.items() if k!='stock'},available=r['stock']>0) for r in rows]
+        if user['role']=='ticketing' and collection=='closures':
+            rows=[{k:v for k,v in r.items() if k not in ('expected','difference','detail','revisions')} for r in rows]
+        if user['role']=='ticketing' and collection=='orders' and not any(
+                o.get('user')==user['id'] and not o.get('closed') for o in state.get('cashOpenings',[])):
+            rows=[]
+        if user['role']=='ticketing' and collection=='sales' and not any(
+                o.get('user')==user['id'] and not o.get('closed') for o in state.get('cashOpenings',[])):
+            rows=[]
         if collection=='sales': rows=[r for r in rows if not r.get('voided')]
         if collection in ['candyOrders','candyRequests'] and user['role']=='ticketing':rows=[]
         output[collection]=rows
