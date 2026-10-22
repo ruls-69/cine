@@ -29,6 +29,10 @@ class OperationalReformsTests(unittest.TestCase):
         self.assertEqual(closed['difference'],-5)
         self.assertFalse(can_sell(state,user['id']))
         self.assertEqual(state['cashMovements'][0]['closureId'],'closing1')
+        from erp.modules.cash.domain import void_movement
+        with self.assertRaises(ValueError):
+            void_movement(state,{'id':'accounting','role':'accounting'},
+                          {'id':'mov1','reason':'Intento de alteración'},'Potosí','2026-10-22T12:20:00-04:00')
         self.assertEqual(state['cashOpenings'][0]['closed'],True)
         receipt=blind_receipt(closed).decode()
         self.assertIn('Bs 60.00',receipt)
