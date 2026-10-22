@@ -56,6 +56,48 @@ class HTTPTests(unittest.TestCase):
         self.assertIn('no-store', headers['Cache-Control'])
         self.assertNotIn(b'<!--ERP_CONFIG-->', body)
 
+    def test_staff_account_from_accounting_is_immediately_usable(self):
+        status, headers, _ = self.request('/api/login',
+            {'username': 'contabilidad', 'password': 'Cine2026!'})
+        self.assertEqual(status, 200)
+        accountant_cookie = headers['Set-Cookie'].split(';')[0]
+        username = 'newstaff.test'
+        code, _, body = self.request('/api/action',
+            {'action': 'user_create', 'branch': 'Potosí',
+             'username': username, 'role': 'ticketing'},
+             headers={'HTTP_COOKIE': accountant_cookie})
+        self.assertEqual(code, 200, body)
+        credentials = json.loads(body)['createdAccount']
+        temporary = credentials['temporaryPassword']
+        status, headers, _ = self.request('/api/login',
+            {'username': username, 'password': temporary})
+        self.assertEqual(status, 200)
+        staff_cookie = headers['Set-Cookie'].split(';')[0]
+        code, _, state = self.request('/api/state',
+            headers={'HTTP_COOKIE': staff_cookie})
+        self.assertEqual(code, 200)
+        self.assertTrue(json.loads(state)['user']['mustChangePassword'])
+        self.assertNotIn(b'passwordHash', state)
+        self.assertNotIn(temporary.encode(), state)
+        code, _, _ = self.request('/api/action',
+            {'action': 'sell', 'branch': 'Potosí'},
+            headers={'HTTP_COOKIE': staff_cookie})
+        self.assertEqual(code, 403)
+        code, _, _ = self.request('/api/password-change',
+            {'currentPassword': temporary, 'newPassword': 'PersonalNewPassword2026'},
+            headers={'HTTP_COOKIE': staff_cookie})
+        self.assertEqual(code, 200)
+        self.assertEqual(self.request('/api/state',
+            headers={'HTTP_COOKIE': staff_cookie})[0], 401)
+        status, headers, _ = self.request('/api/login',
+            {'username': username, 'password': 'PersonalNewPassword2026'})
+        self.assertEqual(status, 200)
+        new_cookie = headers['Set-Cookie'].split(';')[0]
+        code, _, state = self.request('/api/state',
+            headers={'HTTP_COOKIE': new_cookie})
+        self.assertEqual(code, 200)
+        self.assertFalse(json.loads(state)['user']['mustChangePassword'])
+
     def test_private_files_get_and_head_are_denied(self):
         for method in ('GET', 'HEAD'):
             for path in ('/erp.sqlite3', '/server.py', '/.env', '/storage.py', '/supabase/schema.sql', '/erp/application/commands.py', '/erp/modules/identity/infrastructure.py', '/src/app/admin.js', '/src/shared/contracts.ts'):
