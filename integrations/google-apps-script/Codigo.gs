@@ -93,7 +93,7 @@ function recibirPDFCINe(datos, p) {
   // La validación HMAC se realiza antes de llegar a esta función.
   if (typeof datos.recipient !== "string" ||
       datos.recipient.length > 254 ||
-      !/^[^\\s@<>]+@[^\\s@<>]+\\.[^\\s@<>]+$/.test(datos.recipient.trim()))
+      !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(datos.recipient.trim()))
     return {ok: false, estado: "destinatario_invalido"};
   const permitido = datos.recipient.trim();
   if (!real && permitido.toLowerCase() !==
