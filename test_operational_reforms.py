@@ -60,6 +60,48 @@ class OperationalReformsTests(unittest.TestCase):
         self.assertIn('Boletos vendidos',body)
         self.assertNotIn('Total de ventas reales',body)
 
+    def test_admin_does_not_receive_sales_or_cash_logs(self):
+        from erp.application.queries import visible
+        state={
+            'shows':[],
+            'sales':[{'id':'sale','branch':'Potosí','user':'cashier','area':'ticketing','total':120}],
+            'orders':[{'id':'order','branch':'Potosí','user':'cashier'}],
+            'candyOrders':[{'id':'candy-order','branch':'Potosí','user':'candy'}],
+            'cashMovements':[{'id':'mov','branch':'Potosí','user':'cashier'}],
+            'closures':[{'id':'close','branch':'Potosí','user':'cashier','expected':120}],
+            'cashOpenings':[{'id':'open','branch':'Potosí','user':'cashier'}],
+            'log':[{'id':'event1','branch':'Potosí','action':'ticket_checkout'},
+                   {'id':'event2','branch':'Potosí','action':'report'}],
+            'products':[],'reports':[],'audits':[], 'trailers':[]
+        }
+        user={'id':'admin','role':'administrator','branch':'Potosí'}
+        exposed=visible(state,user,users={},mail_configured=False)
+        for collection in ('sales','orders','candyOrders','cashMovements','cashOpenings','closures'):
+            self.assertEqual(exposed[collection],[])
+        self.assertEqual([x['action'] for x in exposed['log']],['report'])
+
+    def test_closed_cashier_can_only_read_own_blind_closure(self):
+        from erp.application.documents import Documents
+        class Repo:
+            def read(self):return state
+        state={'closures':[{'id':'close1','user':'cashier','branch':'Potosí','area':'ticketing',
+                            'day':'2026-10-22','at':'2026-10-22T12:00:00',
+                            'physical':100,'declaredPhysical':100,'expected':150,
+                            'difference':-50,'status':'Pendiente'}],
+               'cashOpenings':[],'orders':[]}
+        docs=Documents(Repo(),['Potosí','Sucre'],
+                       {'closing':lambda row:b'PRIVADO',
+                        'blind_closing':blind_receipt,'ticket':lambda row:b'TICKET',
+                        'candy':lambda row:b'CANDY'})
+        cashier={'id':'cashier','role':'ticketing','branch':'Potosí'}
+        admin={'id':'admin','role':'administrator','branch':'Potosí'}
+        output=docs.get('closing','close1',cashier).content.decode()
+        self.assertIn('Bs 100.00',output)
+        self.assertNotIn('Bs 150.00',output)
+        self.assertNotIn('Bs -50.00',output)
+        with self.assertRaises(PermissionError):
+            docs.get('closing','close1',admin)
+
     def test_authorized_missing_punch_credits_day_without_inventing_time(self):
         employee={'id':'emp1','branch':'Potosí','active':True,'code':'EMP1','name':'Persona de prueba',
                   'role':'Boletería','salary':2400,'email':'','restWeekday':6,'latePolicy':{'enabled':False}}
