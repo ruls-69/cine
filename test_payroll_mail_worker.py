@@ -29,7 +29,8 @@ class PayrollMailWorkerTests(unittest.TestCase):
                         name='Empleado de prueba', recipient='one@example.invalid',
                         subject='Reporte de prueba', status='Pendiente de conectar correo',
                         approvedAt=self.now(), approvedBy='accountant-demo',
-                        approvedRecipient='one@example.invalid', approvedRunFingerprint='',\n                        dispatchRequestedAt=self.now(),dispatchRequestedBy='accountant-demo')
+                        approvedRecipient='one@example.invalid', approvedRunFingerprint='',
+                        dispatchRequestedAt=self.now(),dispatchRequestedBy='accountant-demo')
         self.write(dict(payrollRuns=[self.run], payrollMail=[self.job], log=[]))
 
     def tearDown(self):
