@@ -37,6 +37,7 @@ REQUIRED_FIELDS = {
     'payrollMail': 'run employee name recipient subject status at',
     'payrollDeleted': 'kind record at by',
     'printJobs': 'orderId user terminal status at order',
+    'staffAccounts': 'role passwordHash mustChangePassword active createdAt createdBy',
 }
 
 

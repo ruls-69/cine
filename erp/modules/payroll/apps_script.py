@@ -127,22 +127,22 @@ def ping(*, url=None, secret=None, opener=None):
         return False
     return (isinstance(body, dict) and body.get("ok") is True
             and body.get("estado") == "autenticado"
-            and body.get("envio") == "desactivado")
+            and body.get("envio") in ("desactivado", "activado"))
 
 
 def startup_ping():
     """Opt-in network test; logs only status, never URLs, secrets or responses."""
     try:
         if ping():
-            LOGGER.warning("CINe Apps Script: ping HMAC AUTORIZADO; correo DESACTIVADO.")
+            LOGGER.info("CINe Apps Script: ping HMAC AUTORIZADO (sin envío).")
         else:
-            LOGGER.warning("CINe Apps Script: ping sin confirmación. Correo DESACTIVADO.")
+            LOGGER.warning("CINe Apps Script: ping sin confirmación (no se intentó enviar correo).")
     except HTTPError as error:
         # Never log Google response bodies, authorization URLs, or HMAC values.
-        LOGGER.warning("CINe Apps Script: ping rechazado HTTP %d. Correo DESACTIVADO.",
+        LOGGER.warning("CINe Apps Script: ping rechazado HTTP %d (sin envío).",
                        int(error.code))
     except Exception as error:
-        LOGGER.warning("CINe Apps Script: ping fallido (%s). Correo DESACTIVADO.",
+        LOGGER.warning("CINe Apps Script: ping fallido (%s) (sin envío).",
                        type(error).__name__)
 
 

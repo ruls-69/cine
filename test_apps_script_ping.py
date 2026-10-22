@@ -36,14 +36,15 @@ class ProbeTests(unittest.TestCase):
             with self.subTest(candidate=candidate),self.assertRaises(ValueError):
                 apps_script._signed_ping_request(candidate,SECRET)
 
-    def test_signed_response_must_confirm_disabled_mail(self):
+    def test_signed_response_accepts_authenticated_transport_state(self):
         opener=Mock()
         opener.open.return_value=FakeResponse(b'{"ok":true,"estado":"autenticado","envio":"desactivado"}')
         self.assertTrue(apps_script.ping(url=URL,secret=SECRET,opener=opener))
         opener.open.assert_called_once()
         self.assertEqual("POST",opener.open.call_args.args[0].get_method())
-        for payload in [b'{"ok":true,"estado":"autenticado","envio":"activado"}',
-                        b'{"ok":false,"estado":"no_autorizado"}',b'not json']:
+        opener.open.return_value=FakeResponse(b'{"ok":true,"estado":"autenticado","envio":"activado"}')
+        self.assertTrue(apps_script.ping(url=URL,secret=SECRET,opener=opener))
+        for payload in [b'{"ok":false,"estado":"no_autorizado"}',b'not json']:
             opener.open.return_value=FakeResponse(payload)
             self.assertFalse(apps_script.ping(url=URL,secret=SECRET,opener=opener))
 

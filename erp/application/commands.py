@@ -7,11 +7,10 @@ from erp.modules.payroll import domain as payroll
 from erp.modules.payroll.application import import_file as stage_import
 from erp.modules.inventory import operations as inventory
 from erp.modules.identity import accounts
-from erp.modules.identity.infrastructure import load_users
 from erp.modules.identity.domain import scoped
 from erp.shared.domain.records import require
 
-def mutate(state,user,action,data,*,now,today,uid,branches,biometric_reader):
+def mutate(state,user,action,data,*,now,today,uid,branches,biometric_reader,reserved_user_logins=()):
     cinema.ensure_catalog(state);candy.ensure(state)
     role=user['role']; branch=data.get('branch',user['branch']); scoped(user,branch,branches)
     allowed={'payroll_import':['accounting'],'candy_checkout':['candy'],'candy_void_request':['candy'],'candy_void_review':['accounting'],'cash_open':['ticketing','candy'],'cash_void':['accounting'],'cash_movement':['ticketing','candy'],'ticket_checkout':['ticketing'],'sell':['ticketing','candy'],'show':['manager'],'report':['administrator'],'review':['accounting'],'product':['accounting'],'stock':['accounting'],'audit_start':['accounting'],'audit_save':['accounting'],'audit_finish':['accounting'],'close':['ticketing','candy'],'close_review':['accounting']}
@@ -20,7 +19,7 @@ def mutate(state,user,action,data,*,now,today,uid,branches,biometric_reader):
     for name in ('user_create','user_disable','user_enable','user_reset_password'): allowed[name]=['accounting']
     require(role in allowed.get(action,[]),'Tu rol no permite esta operación.'); result={}
     before_sales={s['id'] for s in state['sales']}
-    if action.startswith('user_'): result=accounts.mutate(state,user,action,data,branch,now(),set(load_users()))
+    if action.startswith('user_'): result=accounts.mutate(state,user,action,data,branch,now(),set(reserved_user_logins))
     elif action=='payroll_import': result=stage_import(state,user,data,branch,now(),reader=biometric_reader)
     elif action.startswith('payroll_'):result=payroll.mutate(state,user,action,data,branch,now())
     elif action=='candy_checkout': result=candy.checkout(state,user,data,today(),now())
