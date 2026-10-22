@@ -247,7 +247,7 @@ def mutate(state,user,action,data,branch,at):
         state['payrollMail'].append(job)
     elif action=='payroll_mail_update':
         job=get(state,'payrollMail',data.get('id'),branch)
-        cinema.check(job['status'] not in ['Enviado','Enviando','Cancelado por corrección'],'Este envío no se puede modificar.')
+        cinema.check(job['status'] not in ['Enviado','Enviando','Cancelado por corrección'] and not job.get('dispatchRequestedAt'),'Este envío no se puede modificar.')
         recipient=email(data.get('email'));cinema.check(bool(recipient),'Completa el correo del empleado.')
         if job['status']=='Revisar envío':cinema.check(data.get('retry')=='yes','Comprueba primero que el correo anterior no llegó; el resultado del envío es incierto.')
         job.setdefault('history',[]).append(dict(at=at,by=user['id'],recipient=job['recipient'],status=job['status']))
@@ -303,7 +303,7 @@ def mutate(state,user,action,data,branch,at):
         run=get(state,'payrollRuns',data.get('id'),branch)
         cinema.check(run['status']=='Validada','Solo se puede corregir una planilla validada.')
         jobs=[j for j in state['payrollMail'] if j['run']==run['id'] and j['status']!='Cancelado por corrección']
-        cinema.check(not any(j['status'] in ['Enviado','Enviando','Revisar envío'] for j in jobs),'Hay correos enviados o con entrega incierta. La planilla debe conservarse; no se puede sobrescribir.')
+        cinema.check(not any(j['status'] in ['Enviado','Enviando','Revisar envío'] or j.get('dispatchRequestedAt') for j in jobs),'Hay correos enviados o con entrega incierta. La planilla debe conservarse; no se puede sobrescribir.')
         note=cinema.text(data.get('reason'),500)
         run.setdefault('history',[]).append(dict(at=at,by=user['id'],reason=note,previous=copy.deepcopy({k:v for k,v in run.items() if k!='history'})))
         for job in jobs:job.update(status='Cancelado por corrección',finishedAt=at)
