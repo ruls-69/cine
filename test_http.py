@@ -98,6 +98,25 @@ class HTTPTests(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertFalse(json.loads(state)['user']['mustChangePassword'])
 
+    def test_new_ticketing_account_is_supported_by_print_agent_directory(self):
+        from erp.modules.identity import accounts
+        import hashlib
+        with server.connect() as db:
+            db.execute('BEGIN IMMEDIATE')
+            state=json.loads(db.execute('SELECT body FROM state WHERE id=1').fetchone()[0])
+            new_account=accounts.mutate(state,{'id':'contabilidad','role':'accounting'},'user_create',
+                {'username':'cashier.dynamic','role':'ticketing'},'Potosí',server.now(),set(server.USERS))
+            db.execute('UPDATE state SET body=? WHERE id=1',(json.dumps(state),))
+        token='private-terminal-token-only-for-tests-2026'
+        agent_config={'cashier1':{'user':'cashier.dynamic',
+                      'tokenSha256':hashlib.sha256(token.encode()).hexdigest()}}
+        from erp.modules.ticketing import print_queue
+        with patch.dict(os.environ,{'ERP_PRINT_MODE':'agent','ERP_PRINT_AGENTS_JSON':json.dumps(agent_config)}):
+            directory=accounts.load_directory(server.repository.read(),server.USERS)
+            self.assertIn('cashier.dynamic',directory)
+            self.assertEqual('cashier.dynamic',print_queue.authenticate('Bearer '+token,directory)['user'])
+            self.assertEqual('cashier.dynamic',server.Handler.__dict__['services'].fget(server.Handler.__new__(server.Handler)).authenticate_agent('Bearer '+token)['user'])
+
     def test_private_files_get_and_head_are_denied(self):
         for method in ('GET', 'HEAD'):
             for path in ('/erp.sqlite3', '/server.py', '/.env', '/storage.py', '/supabase/schema.sql', '/erp/application/commands.py', '/erp/modules/identity/infrastructure.py', '/src/app/admin.js', '/src/shared/contracts.ts'):
