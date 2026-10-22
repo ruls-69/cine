@@ -63,7 +63,7 @@ from erp.shared.domain.records import require, number, text_value, find
 
 def scoped(user,branch): return check_scope(user,branch,BRANCHES)
 def mutate(state,user,action,data):
-    return execute_command(state,user,action,data,now=now,today=today,uid=uid,branches=BRANCHES,biometric_reader=decode)
+    return execute_command(state,user,action,data,now=now,today=today,uid=uid,branches=BRANCHES,biometric_reader=decode,reserved_user_logins=USERS.keys())
 def visible(state,user):
     output=project_state(state,user,users=accounts.load_directory(state,USERS),mail_configured=payroll_mail.configured())
     if user['role']=='accounting': output['staffAccounts']=accounts.public_accounts(state)
