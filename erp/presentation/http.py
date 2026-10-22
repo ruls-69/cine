@@ -170,6 +170,7 @@ class HttpHandler(SimpleHTTPRequestHandler):
                 cookie=SimpleCookie(self.headers.get('Cookie',''))
                 if cookie.get('erp_session'): self.services.identity.logout(cookie['erp_session'].value)
                 return self.respond(200,{'ok':True},self.services.session_cookie(clear=True))
+            if user.get('mustChangePassword'): return self.respond(403,{'error':'Actualiza la contraseña inicial para utilizar CINe.'})
             if path=='/api/print':return self.respond(200,{'printing':self.services.print_order(data.get('order'),user,data.get('reprint') is True,request_id=data.get('requestId'))})
             require(path=='/api/action','Ruta no encontrada.')
             result=self.services.operations.execute(user,data.get('action'),data)
