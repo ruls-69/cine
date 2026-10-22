@@ -221,6 +221,30 @@ def mutate(state,user,action,data,branch,at):
         run.update(status='Validada',validatedAt=at,validatedBy=user['id'],validationNote=note)
         for line in run['lines']:
             state['payrollMail'].append(dict(id=secrets.token_hex(8),branch=branch,run=run['id'],employee=line['employee'],name=line['name'],recipient=line['email'],subject=f'Reporte salarial {run["month"]} · Multicine Universal',status='Pendiente de conectar correo' if line['email'] else 'Falta correo del empleado',at=at))
+    elif action=='payroll_mail_create':
+        # A validated historical payroll can be mailed again without recalculation.
+        # Never mutate or reuse a previous delivery requestId.
+        run=get(state,'payrollRuns',data.get('run'),branch)
+        cinema.check(run['status']=='Validada','Solo se pueden preparar reportes de planillas validadas.')
+        employee=cinema.text(data.get('employee'),80)
+        matching=[line for line in run.get('lines',[]) if line.get('employee')==employee]
+        cinema.check(len(matching)==1,'Selecciona un empleado de esta planilla.')
+        line=matching[0]
+        recipient=email(data.get('email'))
+        cinema.check(bool(recipient),'Confirma el correo del destinatario.')
+        reason=cinema.text(data.get('reason'),300)
+        cinema.check(data.get('confirm')=='yes','Confirma el reporte individual y su destinatario.')
+        previous=[j for j in state['payrollMail'] if j.get('run')==run['id'] and j.get('employee')==employee]
+        cinema.check(not any(j['status'] in ('Enviando','Revisar envío','Pendiente de conectar correo') for j in previous),
+                     'Ya existe un envío pendiente o incierto para este empleado. Revísalo antes de crear otro.')
+        cinema.check(not previous or any(j['status']=='Enviado' for j in previous),
+                     'No existe un envío anterior confirmado para reenviar.')
+        job=dict(id=secrets.token_hex(16),branch=branch,run=run['id'],
+                 employee=employee,name=line['name'],recipient=recipient,
+                 subject=f'Reporte salarial {run["month"]} · Multicine Universal',
+                 status='Pendiente de conectar correo',at=at,createdBy=user['id'],
+                 resendReason=reason,previousJobId=previous[-1]['id'] if previous else None)
+        state['payrollMail'].append(job)
     elif action=='payroll_mail_update':
         job=get(state,'payrollMail',data.get('id'),branch)
         cinema.check(job['status'] not in ['Enviado','Enviando','Cancelado por corrección'],'Este envío no se puede modificar.')
