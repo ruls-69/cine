@@ -154,6 +154,14 @@ class HttpHandler(SimpleHTTPRequestHandler):
                 return self.respond(200,{'ok':True},self.services.session_cookie(token))
             user=self.session()
             if not user: return self.respond(401,{'error':'Inicia sesión.'})
+            if path=='/api/password-change':
+                from erp.modules.identity.accounts import change_password
+                old=data.get('currentPassword')
+                new=data.get('newPassword')
+                result=self.services.repository.transact(lambda state: change_password(state,user['id'],old,new))
+                cookie=SimpleCookie(self.headers.get('Cookie',''))
+                if cookie.get('erp_session'): self.services.identity.logout(cookie['erp_session'].value)
+                return self.respond(200,{'ok':True},self.services.session_cookie(clear=True))
             if path=='/api/logout':
                 cookie=SimpleCookie(self.headers.get('Cookie',''))
                 if cookie.get('erp_session'): self.services.identity.logout(cookie['erp_session'].value)
