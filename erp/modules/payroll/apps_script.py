@@ -72,8 +72,9 @@ def prepare_test_pdf_request(job, run, recipient, pdf, *, url, secret, allowed_r
         raise ValueError("PDF inválido o demasiado grande.")
     if not isinstance(recipient, str) or not isinstance(allowed_recipient, str):
         raise ValueError("Destinatario inválido.")
-    if not allowed_recipient or recipient.strip().casefold() != allowed_recipient.strip().casefold():
-        raise ValueError("Destinatario no permitido para pruebas.")
+    allowed = {address.strip().casefold() for address in allowed_recipient.split(",") if address.strip()}
+    if recipient.strip().casefold() not in allowed:
+        raise ValueError("Destinatario no autorizado para nómina.")
     if run.get("status") != "Validada" or job.get("run") != run.get("id"):
         raise ValueError("La planilla no está validada o no corresponde al reporte.")
     employee = job.get("employee")
@@ -87,7 +88,8 @@ def prepare_test_pdf_request(job, run, recipient, pdf, *, url, secret, allowed_r
     if job.get("subject") != f"Reporte salarial {period} · Multicine Universal":
         raise ValueError("Asunto de correo fuera de formato.")
     timestamp = timestamp or datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
-    data = {"operation": "send_test_pdf", "requestId": job["id"], "timestamp": timestamp,
+    operation = "send_employee_pdf" if os.environ.get("ERP_APPS_SCRIPT_REAL_DELIVERY_ENABLED") == "true" else "send_test_pdf"
+    data = {"operation": operation, "requestId": job["id"], "timestamp": timestamp,
             "recipient": recipient.strip(), "subject": job["subject"],
             "filename": f"reporte-salarial-{period}.pdf",
             "pdfBase64": base64.b64encode(pdf).decode("ascii")}
