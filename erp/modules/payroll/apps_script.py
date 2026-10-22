@@ -144,3 +144,22 @@ def startup_ping():
     except Exception as error:
         LOGGER.warning("CINe Apps Script: ping fallido (%s). Correo DESACTIVADO.",
                        type(error).__name__)
+
+
+def send_prepared_pdf_request(request, *, expected_id, opener=None):
+    """One HTTPS attempt; no network retry or ambiguous-success assumption."""
+    opener = opener or build_opener(_GoogleContentRedirect())
+    with opener.open(request, timeout=30) as response:
+        final = urlsplit(response.geturl())
+        if (response.status != 200 or final.scheme != "https" or
+                final.hostname != "script.googleusercontent.com" or final.path != "/macros/echo"):
+            raise RuntimeError("Respuesta de Google no validada.")
+        raw = response.read(8193)
+    if len(raw) > 8192:
+        raise RuntimeError("Respuesta excesiva de Apps Script.")
+    result = json.loads(raw)
+    if (not isinstance(result, dict) or result.get("ok") is not True or
+            result.get("estado") not in ("enviado", "ya_enviado") or
+            result.get("requestId") != expected_id):
+        raise RuntimeError("Apps Script no confirmó el correo.")
+    return expected_id
