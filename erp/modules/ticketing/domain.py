@@ -12,7 +12,7 @@ def checkout(state,user,data,day,at):
     orders=state.setdefault('orders',[])
     existing=next((o for o in orders if o['user']==user['id'] and o['requestId']==request),None)
     if existing:return {'order':existing,'repeated':True}
-    check(cash.can_sell(state,user['id']),'Tu caja del día está cerrada.')
+    check(cash.active(state,user['id']) is not None,'Debes abrir la caja manualmente antes de vender boletos.')
     lines=data.get('lines');check(isinstance(lines,list) and 1<=len(lines)<=50,'Agrega entre 1 y 50 funciones a la venta.')
     pending=[];seen=set();total=Decimal('0');order_id=secrets.token_hex(8)
     for row in lines:
@@ -39,7 +39,7 @@ def checkout(state,user,data,day,at):
 
 def sell_single(state,user,data,branch,*,now,today,uid):
     """Compatibility single-item sale with unchanged validation and pricing."""
-    require(cash.can_sell(state,user['id']),'Tu caja del día ya está cerrada.'); quantity=number(data.get('quantity'),1,True)
+    require(cash.active(state,user['id']) is not None,'Debes abrir la caja manualmente antes de vender boletos.'); quantity=number(data.get('quantity'),1,True)
     item=find(state,'shows',data.get('item')); require(item['branch']==branch and item['date']==today() and not item.get('cancelled') and not item.get('deleted'),'Selecciona una función vigente de hoy de tu sucursal.')
     require(quantity<=cinema.available(state,item),'No hay suficientes butacas disponibles para esta función.')
     seats=[]; label=f"{item['title']} · {item['time']}"
