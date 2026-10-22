@@ -33,7 +33,7 @@ def configured():
         return False
     provider = os.environ.get('ERP_PAYROLL_MAIL_PROVIDER', 'smtp')
     if provider == 'apps_script':
-        return all(os.environ.get(k) for k in ('ERP_APPS_SCRIPT_URL', 'ERP_APPS_SCRIPT_HMAC_SECRET', 'ERP_APPS_SCRIPT_TEST_RECIPIENT'))
+        return all(os.environ.get(k) for k in ('ERP_APPS_SCRIPT_URL', 'ERP_APPS_SCRIPT_HMAC_SECRET', 'ERP_APPS_SCRIPT_TEST_RECIPIENT')) and os.environ.get('ERP_APPS_SCRIPT_REAL_DELIVERY_ENABLED') == 'true'
     if provider == 'brevo':
         return all(os.environ.get(key) for key in ('ERP_BREVO_API_KEY', 'ERP_BREVO_FROM_EMAIL'))
     if provider == 'smtp':
