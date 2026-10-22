@@ -6893,6 +6893,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 		accounting: [
 			"overview",
 			"payroll",
+			"staff",
 			"inventory",
 			"reports",
 			"audits",
@@ -6914,6 +6915,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 		]
 	};
 	const titles = {
+		staff: "Usuarios del personal",
 		payroll: "Salarios y biométrico",
 		trailers: "Cartelera y tráileres",
 		overview: "Panorama de operación",
@@ -6958,6 +6960,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 	};
 	const uiIcon = (name) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${uiIcons[name] || uiIcons.overview}"/></svg>`;
 	const pageHelp = {
+		staff: "Gestiona accesos para Administración, Boletería y Candy Bar.",
 		overview: "Lo que está pasando hoy en tu sucursal.",
 		shows: "Organiza la semana, las salas y cada horario.",
 		trailers: "Elige lo que verá el público en la web de esta sucursal.",
@@ -7092,7 +7095,8 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 			closures,
 			history,
 			pos,
-			payroll
+			payroll,
+			staff
 		}[page]()}</div><footer>Universal Control <span>${demoMode ? "Entorno de prueba · Datos guardados en este equipo" : "Operación de sucursal · Acceso personal"}</span></footer></main></div>`;
 		filterInventory();
 	}
@@ -7102,6 +7106,19 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 		trailer: "tráiler",
 		show: "función"
 	}[type]}</button>`;
+	function staff() {
+		const people = model.state.staffAccounts || [];
+		return `<section class="panel"><h2>Crear usuario del personal</h2><p class="muted">Contabilidad puede crear cuentas de Administración, Boletería y Candy Bar. La contraseña inicial aparece una sola vez al guardar.</p><form data-action="user_create"><label>Nombre de usuario<input name="username" required minlength="3" maxlength="80" pattern="[a-z0-9][a-z0-9._@+\\-]{2,79}" autocomplete="off"></label><label>Rol<select name="role">${[
+			"administrator",
+			"ticketing",
+			"candy"
+		].map((r) => `<option value="${r}">${esc(roles[r])}</option>`).join("")}</select></label><label>Sucursal<select name="branch">${model.branches.map((b) => `<option value="${esc(b)}" ${b === branch ? "selected" : ""}>${esc(b)}</option>`).join("")}</select></label><button class="primary">Crear cuenta</button></form></section><section class="panel"><h2>Cuentas gestionadas por Contabilidad</h2>${table([
+			"Usuario",
+			"Rol y sucursal",
+			"Estado",
+			"Acciones"
+		], people.map((u) => `<tr><td>${esc(u.id)}</td><td>${esc(roles[u.role] || u.role)} · ${esc(u.branch)}</td><td>${u.active ? "Activa" : "Desactivada"}</td><td>${u.active ? `<form class="compact" data-action="user_disable" data-branch="${esc(u.branch)}"><input type="hidden" name="username" value="${esc(u.id)}"><button>Desactivar</button></form><form class="compact" data-action="user_reset_password" data-branch="${esc(u.branch)}"><input type="hidden" name="username" value="${esc(u.id)}"><button>Restablecer contraseña</button></form>` : `<form class="compact" data-action="user_enable" data-branch="${esc(u.branch)}"><input type="hidden" name="username" value="${esc(u.id)}"><button>Activar</button></form>`}</td></tr>`))}</section>`;
+	}
 	function payroll() {
 		return features.payrollUI ? features.payrollUI.render() : "Cargando salarios…";
 	}
@@ -7609,6 +7626,15 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 			});
 			if (!data) return;
 			const result = await api("action", data);
+			if (result.createdAccount) {
+				const credentials = result.createdAccount;
+				const dialog = document.createElement("dialog");
+				dialog.className = "cash-dialog editor-dialog";
+				dialog.innerHTML = `<h2>Credenciales iniciales</h2><p>Usuario: <strong>${esc(credentials.username)}</strong></p><p>Contraseña temporal: <code>${esc(credentials.temporaryPassword)}</code></p><p>Entrega esta contraseña de forma privada al empleado. No volverá a mostrarse.</p><form method="dialog"><button>He guardado las credenciales</button></form>`;
+				document.body.append(dialog);
+				dialog.showModal();
+				dialog.addEventListener("close", () => dialog.remove(), { once: true });
+			}
 			if (form.closest("dialog")) {
 				const dialog = form.closest("dialog");
 				dialog.close();
