@@ -11,6 +11,7 @@ import candy
 import payroll
 from erp.modules.payroll import mail as payroll_mail
 from erp.modules.identity import infrastructure as auth_config
+from erp.modules.identity import accounts
 from erp.infrastructure import persistence as storage
 from erp.modules.ticketing import print_queue as cloud_print
 ROOT = Path(__file__).parent
@@ -64,7 +65,9 @@ def scoped(user,branch): return check_scope(user,branch,BRANCHES)
 def mutate(state,user,action,data):
     return execute_command(state,user,action,data,now=now,today=today,uid=uid,branches=BRANCHES,biometric_reader=decode)
 def visible(state,user):
-    return project_state(state,user,users=USERS,mail_configured=payroll_mail.configured())
+    output=project_state(state,user,users=accounts.load_directory(state,USERS),mail_configured=payroll_mail.configured())
+    if user['role']=='accounting': output['staffAccounts']=accounts.public_accounts(state)
+    return output
 
 from erp.modules.ticketing.printing import print_order as dispatch_print
 
@@ -89,7 +92,7 @@ class Handler(HttpHandler):
         # Resolve runtime configuration here, including test-only DB overrides.
         return SimpleNamespace(
             repository=repository, operations=operations,
-            identity=Identity(auth_store(),USERS,SessionPolicy(SESSION_IDLE_SECONDS,SESSION_MAX_SECONDS,LOGIN_WINDOW_SECONDS,LOGIN_MAX_ATTEMPTS),clock=time.time,verify_password=auth_config.verify_password,auth_version=auth_config.auth_version,unknown_password_work=lambda:hashlib.pbkdf2_hmac('sha256',b'invalid',b'unknown-user-timing',auth_config.ITERATIONS),new_token=lambda:secrets.token_urlsafe(32)),
+            identity=Identity(auth_store(),accounts.UserDirectory(repository,USERS),SessionPolicy(SESSION_IDLE_SECONDS,SESSION_MAX_SECONDS,LOGIN_WINDOW_SECONDS,LOGIN_MAX_ATTEMPTS),clock=time.time,verify_password=auth_config.verify_password,auth_version=auth_config.auth_version,unknown_password_work=lambda:hashlib.pbkdf2_hmac('sha256',b'invalid',b'unknown-user-timing',auth_config.ITERATIONS),new_token=lambda:secrets.token_urlsafe(32)),
             catalog=Catalog(repository,BRANCHES,today),
             documents=Documents(repository,BRANCHES,{'payroll':payroll.report,'candy':candy.receipt,'closing':cash.report,'ticket':ticketing.receipt,'audit':audit_pdf}),
             auth_config=auth_config, auth_store=auth_store, session_hash=session_hash,

@@ -98,7 +98,13 @@ class HttpHandler(SimpleHTTPRequestHandler):
                 if self.headers.get('If-None-Match')==etag:
                     self.send_response(304);self.send_header('Cache-Control','no-store');self.send_header('ETag',etag);self.end_headers();return
                 state=json.loads(raw)
-                return self.respond(200,dict(user={k:user[k] for k in ['id','role','branch']},branches=self.services.BRANCHES,today=self.services.today(),serverTime=stamp,state=self.services.visible(state,user)),headers={'ETag':etag})
+                limited=bool(user.get('mustChangePassword'))
+                projected=self.services.visible(state,user) if not limited else dict(products=[],shows=[],sales=[],reports=[],audits=[],closures=[],log=[],users=[],availability={},occupied={})
+                identity={k:user[k] for k in ['id','role','branch']}
+                identity['mustChangePassword']=limited
+                return self.respond(200,dict(user=identity,branches=self.services.BRANCHES,today=self.services.today(),serverTime=stamp,state=projected),headers={'ETag':etag})
+            if user.get('mustChangePassword'):
+                return self.respond(403,{'error':'Activa tu cuenta antes de consultar documentos.'})
             routes={'/api/payroll-report/':'payroll','/api/candy-receipt/':'candy','/api/closing/':'closing','/api/receipt/':'ticket','/api/pdf/':'audit'}
             kind=next((kind for prefix,kind in routes.items() if path.startswith(prefix)),None)
             if kind:
@@ -154,10 +160,19 @@ class HttpHandler(SimpleHTTPRequestHandler):
                 return self.respond(200,{'ok':True},self.services.session_cookie(token))
             user=self.session()
             if not user: return self.respond(401,{'error':'Inicia sesión.'})
+            if path=='/api/password-change':
+                from erp.modules.identity.accounts import change_password
+                old=data.get('currentPassword')
+                new=data.get('newPassword')
+                result=self.services.repository.transact(lambda state: change_password(state,user['id'],old,new))
+                cookie=SimpleCookie(self.headers.get('Cookie',''))
+                if cookie.get('erp_session'): self.services.identity.logout(cookie['erp_session'].value)
+                return self.respond(200,{'ok':True},self.services.session_cookie(clear=True))
             if path=='/api/logout':
                 cookie=SimpleCookie(self.headers.get('Cookie',''))
                 if cookie.get('erp_session'): self.services.identity.logout(cookie['erp_session'].value)
                 return self.respond(200,{'ok':True},self.services.session_cookie(clear=True))
+            if user.get('mustChangePassword'): return self.respond(403,{'error':'Actualiza la contraseña inicial para utilizar CINe.'})
             if path=='/api/print':return self.respond(200,{'printing':self.services.print_order(data.get('order'),user,data.get('reprint') is True,request_id=data.get('requestId'))})
             require(path=='/api/action','Ruta no encontrada.')
             result=self.services.operations.execute(user,data.get('action'),data)

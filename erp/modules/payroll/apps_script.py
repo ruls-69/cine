@@ -60,21 +60,19 @@ def _signed_ping_request(url, secret, *, timestamp=None, request_id=None):
 
 
 def prepare_test_pdf_request(job, run, recipient, pdf, *, url, secret, allowed_recipient, timestamp=None):
-    """Prepare an authenticated, test-only PDF request without transmitting it.
-
-    Reject every recipient except the explicitly configured personal test mailbox.
-    The ERP worker still controls when a message may be delivered.
-    """
+    """Create a signed single-employee delivery request; no network I/O here."""
     _valid_webapp_url(url)
     if not isinstance(secret, str) or len(secret) < 32:
         raise ValueError("Clave HMAC no configurada.")
     if not isinstance(pdf, bytes) or not pdf.startswith(b"%PDF-") or len(pdf) > 950000:
         raise ValueError("PDF inválido o demasiado grande.")
-    if not isinstance(recipient, str) or not isinstance(allowed_recipient, str):
+    if not isinstance(recipient, str) or not re.fullmatch(
+            r"[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+", recipient.strip()) or len(recipient) > 254:
         raise ValueError("Destinatario inválido.")
-    allowed = {address.strip().casefold() for address in allowed_recipient.split(",") if address.strip()}
-    if recipient.strip().casefold() not in allowed:
-        raise ValueError("Destinatario no autorizado para nómina.")
+    if allowed_recipient is not None:
+        allowed = {address.strip().casefold() for address in allowed_recipient.split(",") if address.strip()}
+        if recipient.strip().casefold() not in allowed:
+            raise ValueError("Destinatario no autorizado para nómina.")
     if run.get("status") != "Validada" or job.get("run") != run.get("id"):
         raise ValueError("La planilla no está validada o no corresponde al reporte.")
     employee = job.get("employee")

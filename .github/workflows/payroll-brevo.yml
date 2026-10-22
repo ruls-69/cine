@@ -10,6 +10,12 @@ on:
       - 'test_payroll_brevo.py'
       - 'test_payroll_mail_worker.py'
       - 'test_payroll_reissue.py'
+      - 'test_payroll_web_dispatch.py'
+      - 'test_staff_accounts.py'
+      - 'test_http.py'
+      - 'erp/modules/identity/**'
+      - 'erp/application/queries.py'
+      - 'erp/presentation/http.py'
       - 'test_apps_script_ping.py'
       - 'test_apps_script_pdf.py'
       - 'test_apps_script_worker.py'
@@ -34,4 +40,4 @@ jobs:
         env:
           ERP_PAYROLL_MAIL_ENABLED: 'false'
           ERP_PAYROLL_MAIL_PROVIDER: smtp
-        run: python -m unittest test_payroll_brevo.py test_payroll_mail_worker.py test_payroll_reissue.py test_payroll_pdf.py test_apps_script_ping.py test_apps_script_pdf.py test_apps_script_worker.py test_apps_script_render_demo.py -v
+        run: python -m unittest test_payroll_brevo.py test_payroll_mail_worker.py test_payroll_reissue.py test_payroll_web_dispatch.py test_staff_accounts.py test_http.py test_payroll_pdf.py test_apps_script_ping.py test_apps_script_pdf.py test_apps_script_worker.py test_apps_script_render_demo.py -v

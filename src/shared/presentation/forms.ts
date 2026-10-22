@@ -10,7 +10,7 @@ export interface PreparedForm {
 export function commandFromForm(form: HTMLFormElement, branch: string, kind: string): Command {
   const fields: Record<string, unknown> = Object.fromEntries(new FormData(form));
   return commandSchema.parse({ ...fields, action: form.dataset.action,
-    branch: form.dataset.branch || branch, id: form.dataset.id, kind: fields['kind'] || kind });
+    branch: form.dataset.branch || (form.dataset.action === 'user_create' ? String(fields['branch'] || '') : branch), id: form.dataset.id, kind: fields['kind'] || kind });
 }
 
 export function requestId(form: HTMLFormElement): string {

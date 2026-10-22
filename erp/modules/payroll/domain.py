@@ -247,13 +247,13 @@ def mutate(state,user,action,data,branch,at):
         state['payrollMail'].append(job)
     elif action=='payroll_mail_update':
         job=get(state,'payrollMail',data.get('id'),branch)
-        cinema.check(job['status'] not in ['Enviado','Enviando','Cancelado por corrección'],'Este envío no se puede modificar.')
+        cinema.check(job['status'] not in ['Enviado','Enviando','Cancelado por corrección'] and not job.get('dispatchRequestedAt'),'Este envío no se puede modificar.')
         recipient=email(data.get('email'));cinema.check(bool(recipient),'Completa el correo del empleado.')
         if job['status']=='Revisar envío':cinema.check(data.get('retry')=='yes','Comprueba primero que el correo anterior no llegó; el resultado del envío es incierto.')
         job.setdefault('history',[]).append(dict(at=at,by=user['id'],recipient=job['recipient'],status=job['status']))
         # Editing the recipient always cancels any prior authorization.
         job.update(recipient=recipient,status='Pendiente de conectar correo',updated=at)
-        for key in ('approvedAt','approvedBy','approvedRecipient','approvedRunFingerprint'):
+        for key in ('approvedAt','approvedBy','approvedRecipient','approvedRunFingerprint','dispatchRequestedAt','dispatchRequestedBy'):
             job.pop(key,None)
     elif action=='payroll_mail_authorize':
         job=get(state,'payrollMail',data.get('id'),branch)
@@ -274,9 +274,27 @@ def mutate(state,user,action,data,branch,at):
         job.update(approvedAt=at,approvedBy=user['id'],
                    approvedRecipient=recipient,approvedRunFingerprint=run.get('fingerprint',''))
         job.setdefault('history',[]).append(dict(at=at,by=user['id'],action='autorizar_entrega',recipient=recipient))
+    elif action=='payroll_mail_dispatch':
+        job=get(state,'payrollMail',data.get('id'),branch)
+        cinema.check(job['status']=='Pendiente de conectar correo',
+                     'Este envío ya fue iniciado, completado o requiere revisión.')
+        run=get(state,'payrollRuns',job['run'],branch)
+        cinema.check(run['status']=='Validada','La planilla ya no está validada.')
+        cinema.check(data.get('confirm')=='yes','Confirma expresamente el envío inmediato.')
+        cinema.check(job.get('approvedAt') and job.get('approvedBy') and
+                     job.get('approvedRecipient')==job.get('recipient') and
+                     job.get('approvedRunFingerprint')==run.get('fingerprint',''),
+                     'Autoriza primero el reporte y su destinatario exacto.')
+        cinema.check(sum(line.get('employee')==job.get('employee') for line in run.get('lines',[]))==1,
+                     'El reporte debe pertenecer a un único empleado.')
+        # Approval alone never triggers the worker; dispatch is a separate deliberate action.
+        cinema.check(not job.get('dispatchRequestedAt'),'Este envío ya fue solicitado.')
+        job.update(dispatchRequestedAt=at,dispatchRequestedBy=user['id'])
+        job.setdefault('history',[]).append(dict(at=at,by=user['id'],
+                                                  action='solicitar_entrega_individual'))
     elif action=='payroll_mail_revoke':
         job=get(state,'payrollMail',data.get('id'),branch)
-        cinema.check(job['status']=='Pendiente de conectar correo' and job.get('approvedAt'),
+        cinema.check(job['status']=='Pendiente de conectar correo' and job.get('approvedAt') and not job.get('dispatchRequestedAt'),
                      'Solo se puede revocar un reporte autorizado que aún no se está enviando.')
         job.setdefault('history',[]).append(dict(at=at,by=user['id'],action='revocar_entrega'))
         for key in ('approvedAt','approvedBy','approvedRecipient','approvedRunFingerprint'):
@@ -285,7 +303,7 @@ def mutate(state,user,action,data,branch,at):
         run=get(state,'payrollRuns',data.get('id'),branch)
         cinema.check(run['status']=='Validada','Solo se puede corregir una planilla validada.')
         jobs=[j for j in state['payrollMail'] if j['run']==run['id'] and j['status']!='Cancelado por corrección']
-        cinema.check(not any(j['status'] in ['Enviado','Enviando','Revisar envío'] for j in jobs),'Hay correos enviados o con entrega incierta. La planilla debe conservarse; no se puede sobrescribir.')
+        cinema.check(not any(j['status'] in ['Enviado','Enviando','Revisar envío'] or j.get('dispatchRequestedAt') for j in jobs),'Hay correos enviados o con entrega incierta. La planilla debe conservarse; no se puede sobrescribir.')
         note=cinema.text(data.get('reason'),500)
         run.setdefault('history',[]).append(dict(at=at,by=user['id'],reason=note,previous=copy.deepcopy({k:v for k,v in run.items() if k!='history'})))
         for job in jobs:job.update(status='Cancelado por corrección',finishedAt=at)

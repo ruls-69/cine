@@ -5,7 +5,7 @@ from erp.modules.inventory.domain import active
 def visible(state,user,*,users,mail_configured):
     output={}
     for collection,rows in state.items():
-        if collection=='printJobs': continue
+        if collection in ('printJobs','staffAccounts'): continue
         if collection.startswith('payroll') and user['role']!='accounting':continue
         if collection=='trailers' and user['role']!='manager': continue
         rows=[r for r in rows if not r.get('deleted') and (user['branch'] is None or r['branch']==user['branch'])]

@@ -6,6 +6,8 @@ from erp.modules.cash import domain as cash, operations as closing
 from erp.modules.payroll import domain as payroll
 from erp.modules.payroll.application import import_file as stage_import
 from erp.modules.inventory import operations as inventory
+from erp.modules.identity import accounts
+from erp.modules.identity.infrastructure import load_users
 from erp.modules.identity.domain import scoped
 from erp.shared.domain.records import require
 
@@ -13,11 +15,13 @@ def mutate(state,user,action,data,*,now,today,uid,branches,biometric_reader):
     cinema.ensure_catalog(state);candy.ensure(state)
     role=user['role']; branch=data.get('branch',user['branch']); scoped(user,branch,branches)
     allowed={'payroll_import':['accounting'],'candy_checkout':['candy'],'candy_void_request':['candy'],'candy_void_review':['accounting'],'cash_open':['ticketing','candy'],'cash_void':['accounting'],'cash_movement':['ticketing','candy'],'ticket_checkout':['ticketing'],'sell':['ticketing','candy'],'show':['manager'],'report':['administrator'],'review':['accounting'],'product':['accounting'],'stock':['accounting'],'audit_start':['accounting'],'audit_save':['accounting'],'audit_finish':['accounting'],'close':['ticketing','candy'],'close_review':['accounting']}
-    for name in ['payroll_delete','payroll_reopen','payroll_role','payroll_employee','payroll_extra','payroll_extra_void','payroll_calculate','payroll_validate','payroll_mail_update','payroll_mail_authorize','payroll_mail_revoke','payroll_mail_create']:allowed[name]=['accounting']
+    for name in ['payroll_delete','payroll_reopen','payroll_role','payroll_employee','payroll_extra','payroll_extra_void','payroll_calculate','payroll_validate','payroll_mail_update','payroll_mail_authorize','payroll_mail_revoke','payroll_mail_create','payroll_mail_dispatch']:allowed[name]=['accounting']
     for name in ['trailer_save','room_save','movie_save','schedule','show_cancel','trailer_delete','movie_delete','room_delete','show_delete']: allowed[name]=['manager']
+    for name in ('user_create','user_disable','user_enable','user_reset_password'): allowed[name]=['accounting']
     require(role in allowed.get(action,[]),'Tu rol no permite esta operación.'); result={}
     before_sales={s['id'] for s in state['sales']}
-    if action=='payroll_import': result=stage_import(state,user,data,branch,now(),reader=biometric_reader)
+    if action.startswith('user_'): result=accounts.mutate(state,user,action,data,branch,now(),set(load_users()))
+    elif action=='payroll_import': result=stage_import(state,user,data,branch,now(),reader=biometric_reader)
     elif action.startswith('payroll_'):result=payroll.mutate(state,user,action,data,branch,now())
     elif action=='candy_checkout': result=candy.checkout(state,user,data,today(),now())
     elif action=='candy_void_request': result=candy.request_void(state,user,data,now())

@@ -5456,7 +5456,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 		return commandSchema.parse({
 			...fields,
 			action: form.dataset.action,
-			branch: form.dataset.branch || branch,
+			branch: form.dataset.branch || (form.dataset.action === "user_create" ? String(fields["branch"] || "") : branch),
 			id: form.dataset.id,
 			kind: fields["kind"] || kind
 		});
@@ -5561,7 +5561,8 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 	const userSchema = object({
 		id: string(),
 		role: roleSchema,
-		branch: string().nullable()
+		branch: string().nullable(),
+		mustChangePassword: boolean().optional()
 	});
 	const rowSchema = looseObject({
 		id: string().optional(),
@@ -6813,16 +6814,16 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 			return `<form class="compact" data-action="payroll_mail_create" data-branch="${ctx.esc(j.branch)}"><input type="hidden" name="run" value="${ctx.esc(j.run)}"><input type="hidden" name="employee" value="${ctx.esc(j.employee)}"><label>Correo para nuevo envío<input type="email" name="email" value="${ctx.esc(j.recipient)}" required></label><label>Motivo del reenvío<input name="reason" maxlength="300" required placeholder="Ej. Solicitud del empleado"></label><label class="payroll-check"><input type="checkbox" name="confirm" value="yes" required><span>Confirmo crear una nueva solicitud; requiere otra autorización individual.</span></label><button>Preparar nuevo envío</button></form>`;
 		}
 		function mail() {
-			return panel("Envío individual de reportes", `<div class="banner">${ctx.model.state.payrollMailConfigured ? "Transporte configurado. Solo los reportes autorizados individualmente pueden entrar en la cola." : "Transporte desactivado. Los reportes quedan pendientes y no se envían correos."}</div><p class="muted">Contabilidad debe confirmar cada destinatario y autorizar individualmente. Los reportes antiguos no se envían al activar el transporte. «Enviado» indica aceptación del servidor, no lectura ni pago.</p>${ctx.table([
+			return panel("Envío individual de reportes", `<div class="banner">${ctx.model.state.payrollMailConfigured ? "Transporte configurado. Solo los reportes autorizados individualmente pueden entrar en la cola." : "Transporte desactivado. Los reportes quedan pendientes y no se envían correos."}</div><p class="muted">Contabilidad confirma el correo, autoriza el reporte y pulsa «Enviar ahora» por cada empleado. Los reportes antiguos nunca salen automáticamente. «Enviado» indica aceptación del servidor, no lectura ni pago.</p>${ctx.table([
 				"Empleado / planilla",
 				"Destinatario",
 				"Estado",
 				"Acciones"
-			], rows("payrollMail").slice().reverse().map((j) => `<tr><td>${ctx.esc(j.name)}<small>${ctx.esc(j.subject)}</small></td><td>${ctx.esc(j.recipient) || "Sin correo"}<small>${j.approvedAt ? "Autorizado por " + ctx.esc(j.approvedBy) + " · " + ctx.esc(j.approvedAt) : "Sin autorización individual"}</small></td><td>${ctx.badge(j.status)}${j.error ? `<small>${ctx.esc(j.error)}</small>` : ""}</td><td>${[
+			], rows("payrollMail").slice().reverse().map((j) => `<tr><td>${ctx.esc(j.name)}<small>${ctx.esc(j.subject)}</small></td><td>${ctx.esc(j.recipient) || "Sin correo"}<small>${j.approvedAt ? "Autorizado por " + ctx.esc(j.approvedBy) + " · " + ctx.esc(j.approvedAt) : "Sin autorización individual"}</small></td><td>${ctx.badge(j.status)}${j.error ? `<small>${ctx.esc(j.error)}</small>` : ""}${j.dispatchRequestedAt && j.status === "Pendiente de conectar correo" ? "<small>Solicitud de envío registrada; pendiente del transporte</small>" : ""}</td><td>${[
 				"Enviado",
 				"Enviando",
 				"Cancelado por corrección"
-			].includes(j.status) ? `${ctx.esc(j.finishedAt || j.at)}${resendForm(j)}` : `<div class="payroll-mail-controls"><form class="compact" data-action="payroll_mail_update" data-id="${j.id}" data-branch="${ctx.esc(j.branch)}"><label>Correo confirmado<input type="email" name="email" value="${ctx.esc(j.recipient)}" required></label>${j.status === "Revisar envío" ? "<label class=\"payroll-check\"><input type=\"checkbox\" name=\"retry\" value=\"yes\" required><span>Comprobé que no llegó el correo anterior.</span></label>" : ""}<button>Guardar destinatario</button></form>${j.status === "Pendiente de conectar correo" && !j.approvedAt && j.recipient ? `<form class="compact" data-action="payroll_mail_authorize" data-id="${j.id}" data-branch="${ctx.esc(j.branch)}"><label class="payroll-check"><input type="checkbox" name="confirm" value="yes" required><span>Confirmo enviar únicamente el reporte individual a ${ctx.esc(j.recipient)}.</span></label><button class="primary">Autorizar entrega</button></form>` : ""}${j.status === "Pendiente de conectar correo" && j.approvedAt ? `<form class="compact" data-action="payroll_mail_revoke" data-id="${j.id}" data-branch="${ctx.esc(j.branch)}"><button>Revocar autorización</button></form>` : ""}</div>`}</td></tr>`))}<details><summary>Configuración del transporte</summary><p class="muted small">La conexión Render / Apps Script se configura en el servidor. Habilitarla no autoriza los reportes existentes. Revisa cada autorización antes de habilitar el procesamiento.</p></details>`);
+			].includes(j.status) ? `${ctx.esc(j.finishedAt || j.at)}${resendForm(j)}` : `<div class="payroll-mail-controls"><form class="compact" data-action="payroll_mail_update" data-id="${j.id}" data-branch="${ctx.esc(j.branch)}"><label>Correo confirmado<input type="email" name="email" value="${ctx.esc(j.recipient)}" required></label>${j.status === "Revisar envío" ? "<label class=\"payroll-check\"><input type=\"checkbox\" name=\"retry\" value=\"yes\" required><span>Comprobé que no llegó el correo anterior.</span></label>" : ""}<button>Guardar destinatario</button></form>${j.status === "Pendiente de conectar correo" && !j.approvedAt && j.recipient ? `<form class="compact" data-action="payroll_mail_authorize" data-id="${j.id}" data-branch="${ctx.esc(j.branch)}"><label class="payroll-check"><input type="checkbox" name="confirm" value="yes" required><span>Confirmo enviar únicamente el reporte individual a ${ctx.esc(j.recipient)}.</span></label><button class="primary">Autorizar entrega</button></form>` : ""}${j.status === "Pendiente de conectar correo" && j.approvedAt && !j.dispatchRequestedAt ? `<form class="compact" data-action="payroll_mail_dispatch" data-id="${j.id}" data-branch="${ctx.esc(j.branch)}"><label class="payroll-check"><input type="checkbox" name="confirm" value="yes" required><span>Confirmo enviar ahora el reporte individual a ${ctx.esc(j.recipient)}.</span></label><button class="primary">Enviar ahora</button></form>` : ""}${j.status === "Pendiente de conectar correo" && j.approvedAt && !j.dispatchRequestedAt ? `<form class="compact" data-action="payroll_mail_revoke" data-id="${j.id}" data-branch="${ctx.esc(j.branch)}"><button>Revocar autorización</button></form>` : ""}</div>`}</td></tr>`))}<details><summary>Configuración del transporte</summary><p class="muted small">La conexión Render / Apps Script se configura en el servidor. Habilitarla no autoriza los reportes existentes. Revisa cada autorización antes de habilitar el procesamiento.</p></details>`);
 		}
 		controller = { render: () => `<div class="payroll-navigation"><div class="payroll-workflow" aria-label="Proceso de salarios">${[
 			[
@@ -6893,6 +6894,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 		accounting: [
 			"overview",
 			"payroll",
+			"staff",
 			"inventory",
 			"reports",
 			"audits",
@@ -6914,6 +6916,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 		]
 	};
 	const titles = {
+		staff: "Usuarios del personal",
 		payroll: "Salarios y biométrico",
 		trailers: "Cartelera y tráileres",
 		overview: "Panorama de operación",
@@ -6958,6 +6961,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 	};
 	const uiIcon = (name) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${uiIcons[name] || uiIcons.overview}"/></svg>`;
 	const pageHelp = {
+		staff: "Gestiona accesos para Administración, Boletería y Candy Bar.",
 		overview: "Lo que está pasando hoy en tu sucursal.",
 		shows: "Organiza la semana, las salas y cada horario.",
 		trailers: "Elige lo que verá el público en la web de esta sucursal.",
@@ -7092,7 +7096,8 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 			closures,
 			history,
 			pos,
-			payroll
+			payroll,
+			staff
 		}[page]()}</div><footer>Universal Control <span>${demoMode ? "Entorno de prueba · Datos guardados en este equipo" : "Operación de sucursal · Acceso personal"}</span></footer></main></div>`;
 		filterInventory();
 	}
@@ -7102,6 +7107,22 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 		trailer: "tráiler",
 		show: "función"
 	}[type]}</button>`;
+	function staff() {
+		const people = model.state.staffAccounts || [];
+		return `<section class="panel"><h2>Crear usuario del personal</h2><p class="muted">Contabilidad puede crear cuentas de Administración, Boletería y Candy Bar. La contraseña inicial aparece una sola vez al guardar.</p><form data-action="user_create"><label>Nombre de usuario<input name="username" required minlength="3" maxlength="80" pattern="[a-z0-9][a-z0-9._@+\\-]{2,79}" autocomplete="off"></label><label>Rol<select name="role">${[
+			"administrator",
+			"ticketing",
+			"candy"
+		].map((r) => `<option value="${r}">${esc(roles[r])}</option>`).join("")}</select></label><label>Sucursal<select name="branch">${model.branches.map((b) => `<option value="${esc(b)}" ${b === branch ? "selected" : ""}>${esc(b)}</option>`).join("")}</select></label><button class="primary">Crear cuenta</button></form></section><section class="panel"><h2>Cuentas gestionadas por Contabilidad</h2>${table([
+			"Usuario",
+			"Rol y sucursal",
+			"Estado",
+			"Acciones"
+		], people.map((u) => `<tr><td>${esc(u.id)}</td><td>${esc(roles[u.role] || u.role)} · ${esc(u.branch)}</td><td>${u.active ? "Activa" : "Desactivada"}</td><td>${u.active ? `<form class="compact" data-action="user_disable" data-branch="${esc(u.branch)}"><input type="hidden" name="username" value="${esc(u.id)}"><button>Desactivar</button></form><form class="compact" data-action="user_reset_password" data-branch="${esc(u.branch)}"><input type="hidden" name="username" value="${esc(u.id)}"><button>Restablecer contraseña</button></form>` : `<form class="compact" data-action="user_enable" data-branch="${esc(u.branch)}"><input type="hidden" name="username" value="${esc(u.id)}"><button>Activar</button></form>`}</td></tr>`))}</section>`;
+	}
+	function firstLogin() {
+		$("#root").innerHTML = `<main class="login"><section class="intro"><h1>Activar cuenta de CINe</h1><p>Antes de trabajar, cambia la contraseña inicial por una de uso personal.</p><form id="firstPasswordForm"><label>Contraseña provisional<input type="password" name="currentPassword" autocomplete="current-password" required></label><label>Nueva contraseña (12 caracteres como mínimo)<input type="password" name="newPassword" autocomplete="new-password" minlength="12" maxlength="256" required></label><button class="primary">Guardar nueva contraseña</button></form><button id="logout">Cerrar sesión</button></section></main>`;
+	}
 	function payroll() {
 		return features.payrollUI ? features.payrollUI.render() : "Cargando salarios…";
 	}
@@ -7145,6 +7166,10 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 	}
 	function refreshView() {
 		dirty = false;
+		if (model?.user?.mustChangePassword) {
+			firstLogin();
+			return;
+		}
 		render();
 		calculate();
 		schedulePreview();
@@ -7601,6 +7626,16 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 				await refresh(true);
 				return;
 			}
+			if (form.id === "firstPasswordForm") {
+				await api("password-change", Object.fromEntries(new FormData(form)));
+				model = null;
+				page = null;
+				lastState = "";
+				sessionClient.invalidate();
+				login();
+				notify("Contraseña actualizada. Inicia sesión nuevamente.");
+				return;
+			}
 			if (form.dataset.ticketForm || form.dataset.candyForm) return;
 			const data = await prepareCommand(form, e.submitter, branch, kind, {
 				confirm,
@@ -7609,6 +7644,15 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 			});
 			if (!data) return;
 			const result = await api("action", data);
+			if (result.createdAccount) {
+				const credentials = result.createdAccount;
+				const dialog = document.createElement("dialog");
+				dialog.className = "cash-dialog editor-dialog";
+				dialog.innerHTML = `<h2>Credenciales iniciales</h2><p>Usuario: <strong>${esc(credentials.username)}</strong></p><p>Contraseña temporal: <code>${esc(credentials.temporaryPassword)}</code></p><p>Entrega esta contraseña de forma privada al empleado. No volverá a mostrarse.</p><form method="dialog"><button>He guardado las credenciales</button></form>`;
+				document.body.append(dialog);
+				dialog.showModal();
+				dialog.addEventListener("close", () => dialog.remove(), { once: true });
+			}
 			if (form.closest("dialog")) {
 				const dialog = form.closest("dialog");
 				dialog.close();
