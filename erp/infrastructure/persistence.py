@@ -23,7 +23,7 @@ BASE_COLLECTIONS = ('products', 'shows', 'sales', 'reports', 'audits', 'closures
                     'log', 'trailers', 'rooms', 'movies', 'orders', 'cashMovements',
                     'cashOpenings', 'candyOrders', 'candyRequests', 'payrollEmployees',
                     'payrollRoles', 'payrollExtras', 'payrollImports', 'payrollRuns',
-                    'payrollMail', 'payrollDeleted', 'printJobs', 'staffAccounts')
+                    'payrollMail', 'payrollDeleted', 'printJobs', 'staffAccounts', 'payrollAttendanceCredits')
 
 
 def production():
