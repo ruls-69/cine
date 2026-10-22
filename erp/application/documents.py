@@ -42,4 +42,7 @@ class Documents:
                 allowed=privileged or (user['role']=='ticketing' and row['user']==user['id'] and row['branch']==user['branch'] and active(state,user['id']) is not None)
         if not allowed:
             raise PermissionError({'candy':'No tienes acceso a este recibo.','closing':'No tienes acceso a este cierre.','ticket':'No tienes acceso a este comprobante.'}[kind])
+        if kind=='closing' and user['role']=='ticketing':
+            from erp.modules.cash.presentation import blind_receipt
+            return Document(blind_receipt(row))
         return Document(self.renderers[kind](row))
