@@ -20,6 +20,11 @@ class Documents:
 
     def get(self, kind, record_id, user, employee=None):
         state=self.repository.read()
+        if kind=='ticket-worksheet':
+            if user['role']!='administrator': raise PermissionError('Solo Administración puede imprimir este control.')
+            from datetime import datetime, timezone, timedelta
+            today=datetime.now(timezone(timedelta(hours=-4))).date().isoformat()
+            return Document(self.renderers['ticket-worksheet'](user['branch'],today,state.get('shows',[])))
         if kind=='payroll':
             if user['role']!='accounting': raise PermissionError('Solo Contabilidad puede consultar salarios.')
             row=next((r for r in state.get('payrollRuns',[]) if r['id']==record_id),None)
@@ -35,9 +40,13 @@ class Documents:
         privileged=user['role'] in ['manager','accounting']
         allowed=False
         if row:
-            if kind=='candy': allowed=privileged or user['role'] in ['candy','administrator'] and row['branch']==user['branch']
-            if kind=='closing': allowed=privileged or row['user']==user['id'] or user['role']=='administrator' and row['branch']==user['branch']
-            if kind=='ticket': allowed=privileged or user['role']=='ticketing' and row['user']==user['id'] and row['branch']==user['branch']
+            if kind=='candy': allowed=privileged or user['role']=='candy' and row['branch']==user['branch']
+            if kind=='closing': allowed=privileged or row['user']==user['id'] 
+            if kind=='ticket':
+                from erp.modules.cash.domain import can_sell
+                allowed=privileged or (user['role']=='ticketing' and row['user']==user['id'] and row['branch']==user['branch'] and can_sell(state,user['id']))
         if not allowed:
             raise PermissionError({'candy':'No tienes acceso a este recibo.','closing':'No tienes acceso a este cierre.','ticket':'No tienes acceso a este comprobante.'}[kind])
+        if kind=='closing' and user['role']=='ticketing':
+            return Document(self.renderers['blind_closing'](row))
         return Document(self.renderers[kind](row))

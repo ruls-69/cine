@@ -7,7 +7,7 @@ def active(state,user):
     return next((o for o in reversed(state.get('cashOpenings',[])) if o['user']==user and not o.get('closed')),None)
 
 def can_sell(state,user):
-    return active(state,user) is not None or not any(c['user']==user for c in state['closures'])
+    return active(state,user) is not None or not any(c['user']==user for c in state.get('closures',[]))
 
 def opening(state,user,data,day,at):
     cinema.check(active(state,user['id']) is None,'Ya tienes una caja abierta.')
@@ -50,6 +50,11 @@ def void_movement(state,user,data,branch,at):
     row=next((m for m in state.get('cashMovements',[]) if m['id']==data.get('id')),None)
     cinema.check(row is not None and row['branch']==branch,'Movimiento no disponible en esta sucursal.')
     cinema.check(not row.get('voided'),'Este movimiento ya fue anulado.')
+    cinema.check(not row.get('closureId') and not any(
+        x['user']==row['user'] and x.get('cashSession','')==row.get('cashSession','')
+        and (bool(row.get('cashSession')) or x.get('day')==row.get('day'))
+        for x in state.get('closures',[])),
+        'Este movimiento pertenece a un cierre archivado; no se puede alterar su monto esperado.')
     reason=cinema.text(data.get('reason'),300)
     row.update(voided=True,voidReason=reason,voidBy=user['id'],voidAt=at)
     for close in state['closures']:

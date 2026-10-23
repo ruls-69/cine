@@ -1,6 +1,7 @@
 """Role-filtered read models, excluding private operational data."""
 from erp.modules.catalog import domain as cinema
 from erp.modules.inventory.domain import active
+from erp.modules.cash.domain import can_sell
 
 def visible(state,user,*,users,mail_configured):
     output={}
@@ -8,6 +9,10 @@ def visible(state,user,*,users,mail_configured):
         if collection in ('printJobs','staffAccounts'): continue
         if collection.startswith('payroll') and user['role']!='accounting':continue
         if collection=='trailers' and user['role']!='manager': continue
+        if user['role']=='administrator' and collection in ('sales','orders','candyOrders','cashMovements','cashOpenings','closures'):
+            rows=[]
+        if user['role']=='administrator' and collection=='log':
+            rows=[r for r in rows if r.get('action') in ('report','review','audit_start','audit_finish','audit_save','stock','product')]
         rows=[r for r in rows if not r.get('deleted') and (user['branch'] is None or r['branch']==user['branch'])]
         if user['role'] in ['ticketing','candy']:
             if collection in ['sales','closures','orders','cashMovements','cashOpenings']: rows=[r for r in rows if r['user']==user['id']]
@@ -16,6 +21,12 @@ def visible(state,user,*,users,mail_configured):
             elif collection in ['reports','log']: rows=[]
         if collection=='products' and user['role']=='candy' and not active(state,user['branch'],'candy'):
             rows=[dict({k:v for k,v in r.items() if k!='stock'},available=r['stock']>0) for r in rows]
+        if user['role']=='ticketing' and collection=='closures':
+            rows=[{k:v for k,v in r.items() if k not in ('expected','difference','detail','revisions')} for r in rows]
+        if user['role']=='ticketing' and collection=='orders' and not can_sell(state,user['id']):
+            rows=[]
+        if user['role']=='ticketing' and collection=='sales' and not can_sell(state,user['id']):
+            rows=[]
         if collection=='sales': rows=[r for r in rows if not r.get('voided')]
         if collection in ['candyOrders','candyRequests'] and user['role']=='ticketing':rows=[]
         output[collection]=rows

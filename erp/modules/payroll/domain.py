@@ -11,7 +11,7 @@ def amount(value,zero=True):
     return float(n.quantize(Decimal('.01'),rounding=ROUND_HALF_UP))
 
 def ensure(state):
-    for key in ['payrollEmployees','payrollRoles','payrollExtras','payrollRuns','payrollMail']:state.setdefault(key,[])
+    for key in ['payrollEmployees','payrollRoles','payrollExtras','payrollRuns','payrollMail','payrollAttendanceCredits']:state.setdefault(key,[])
 
 def get(state,key,id,branch):
     item=cinema.find(state,key,id);cinema.check(item['branch']==branch,'Registro de otra sucursal.');return item
@@ -53,7 +53,9 @@ def lateness(employee,punches,worked_days,daily):
     if not policy['enabled']:return Decimal(0),rows,policy
     scheduled=parse_time(policy['start'])
     for day in sorted(worked_days):
-        first=min(p['absolute']%86400 for p in punches if p['date']==day)
+        on_day=[p for p in punches if p['date']==day]
+        if not on_day: continue  # An authorized paid-day exception has no synthetic clock-in.
+        first=min(p['absolute']%86400 for p in on_day)
         delay=max(0,first-scheduled)
         chosen=None
         for tier in policy['tiers']:
@@ -158,8 +160,10 @@ def calculate(state,source,mapping):
         rest_dates={d.isoformat() for d in all_days if d.weekday()==e['restWeekday']}
         scheduled={d.isoformat() for d in all_days}-rest_dates
         worked={p['date'] for p in punches}
-        worked_regular=worked&scheduled;missing=scheduled-worked;worked_rest=worked&rest_dates
-        if not punches:issues.append(dict(row='—',message=f'{e["name"]}: sin marcaciones válidas; sueldo devengado cero'))
+        credits=[x for x in state.get('payrollAttendanceCredits',[]) if x['branch']==source['branch'] and x['month']==period and x['employee']==e['id'] and not x.get('voided')]
+        credited_dates={x['date'] for x in credits}
+        worked_regular=(worked|credited_dates)&scheduled;missing=scheduled-worked-credited_dates;worked_rest=worked&rest_dates
+        if not punches and not credited_dates:issues.append(dict(row='—',message=f'{e["name"]}: sin marcaciones válidas; sueldo devengado cero'))
         extras=[dict(id=x['id'],date=x['date'],reason=x['reason'],amount=x['amount'],extraType=x.get('extraType','special')) for x in state['payrollExtras'] if x['branch']==source['branch'] and x['month']==period and e['id'] in x['employees'] and not x['voided']]
         for extra in extras:
             if extra['extraType']=='day':
@@ -170,7 +174,7 @@ def calculate(state,source,mapping):
         bonus=sum((Decimal(str(x['amount'])) for x in extras),Decimal(0))
         base=Decimal(str(e['salary']));earned=(base*len(worked_regular)/len(scheduled)).quantize(Decimal('.01'),rounding=ROUND_HALF_UP)
         deduction,late_rows,policy=lateness(e,punches,worked_regular,base/len(scheduled));deduction=min(deduction,earned)
-        lines.append(dict(latePolicy=copy.deepcopy(policy),lateRows=late_rows,lateDeduction=float(deduction),netBase=float(earned-deduction),employee=e['id'],code=e['code'],name=e['name'],role=e['role'],email=e['email'],base=e['salary'],earnedBase=float(earned),unearnedBase=float(base-earned),expectedDays=len(scheduled),workedDays=len(worked_regular),missingDates=sorted(missing),restDates=sorted(rest_dates),workedRestDates=sorted(worked_rest),extras=extras,extraTotal=float(bonus),total=float(earned-deduction+bonus),days=len(worked),hours=round(sum(p['seconds'] for p in punches)/3600,2),attendance=punches))
+        lines.append(dict(latePolicy=copy.deepcopy(policy),lateRows=late_rows,lateDeduction=float(deduction),netBase=float(earned-deduction),employee=e['id'],code=e['code'],name=e['name'],role=e['role'],email=e['email'],base=e['salary'],earnedBase=float(earned),unearnedBase=float(base-earned),expectedDays=len(scheduled),workedDays=len(worked_regular),creditedDates=sorted(credited_dates),missingDates=sorted(missing),restDates=sorted(rest_dates),workedRestDates=sorted(worked_rest),extras=extras,extraTotal=float(bonus),total=float(earned-deduction+bonus),days=len(worked),hours=round(sum(p['seconds'] for p in punches)/3600,2),attendance=punches))
     result=dict(calculationVersion=3,sourceStart=min(source_dates) if source_dates else '',sourceEnd=max(source_dates) if source_dates else '',unmatchedCodes=sorted(unmatched),month=period,lines=lines,issues=issues,total=float(sum((Decimal(str(l['total'])) for l in lines),Decimal(0))))
     result['fingerprint']=hashlib.sha256(json.dumps(result,sort_keys=True,ensure_ascii=False).encode()).hexdigest();return result
 
@@ -198,6 +202,27 @@ def mutate(state,user,action,data,branch,at):
     elif action=='payroll_employee':employee_save(state,data,branch,at,user)
     elif action=='payroll_extra':extra_save(state,data,branch,at,user)
     elif action=='payroll_extra_void':extra_void(state,data,branch,at,user)
+    elif action=='payroll_attendance_credit':
+        period=month(data.get('month'))
+        employee=get(state,'payrollEmployees',data.get('employee'),branch)
+        day=date.fromisoformat(str(data.get('date',''))).isoformat()
+        cinema.check(day.startswith(period+'-'),'La fecha debe pertenecer al mes de la planilla.')
+        reason=cinema.text(data.get('reason'),300)
+        cinema.check(data.get('confirm')=='yes','Confirma el abono excepcional del día sin marcación completa.')
+        run=next((r for r in state['payrollRuns'] if r['branch']==branch and r['month']==period and r['status']=='Borrador'),None)
+        cinema.check(run is not None,'Calcula primero el borrador del período.')
+        line=next((l for l in run['lines'] if l['employee']==employee['id']),None)
+        cinema.check(line is not None and day in line.get('missingDates',[]),'Este día no figura como jornada regular sin marcación.')
+        cinema.check(not any(x['branch']==branch and x['month']==period and x['employee']==employee['id'] and x['date']==day and not x.get('voided') for x in state['payrollAttendanceCredits']),
+                     'Ya existe una autorización para esta fecha.')
+        state['payrollAttendanceCredits'].append(dict(id=secrets.token_hex(8),branch=branch,month=period,
+            employee=employee['id'],date=day,reason=reason,by=user['id'],at=at,voided=False))
+    elif action=='payroll_attendance_void':
+        record=get(state,'payrollAttendanceCredits',data.get('id'),branch)
+        cinema.check(not record.get('voided'),'La autorización ya está anulada.')
+        cinema.check(not any(r['branch']==branch and r['month']==record['month'] and r['status']=='Validada' for r in state['payrollRuns']),
+                     'No se puede modificar la asistencia de una planilla validada.')
+        record.update(voided=True,voidBy=user['id'],voidAt=at,voidReason=cinema.text(data.get('reason'),300))
     elif action=='payroll_calculate':
         source=get(state,'payrollImports',data.get('id'),branch)
         mapping={k:data.get(k) for k in ['code','date','entry','exit','format']}

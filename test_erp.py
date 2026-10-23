@@ -38,7 +38,9 @@ class ERPTests(unittest.TestCase):
         self.assertEqual(self.state(other)['cashMovements'],[])
         expected=erp.cash.summary(self.state(seller),'boleteria.potosi',erp.today())['expected']
         self.action(seller,'close',physical=expected,note='Entrega')
-        close=self.state(seller)['closures'][0]
+        close=self.state(accountant)['closures'][0]
+        self.assertNotIn('detail',self.state(seller)['closures'][0])
+        self.assertNotIn('expected',self.state(seller)['closures'][0])
         self.assertEqual(close['detail']['incomeTotal'],100)
         self.assertEqual(close['detail']['expenseTotal'],30)
         self.assertEqual(close['difference'],0)
@@ -225,7 +227,9 @@ class ERPTests(unittest.TestCase):
         self.assertEqual(self.request('/api/receipt/'+order['id'],cookie=self.login('boleteria2.potosi'))[0],403)
         self.assertEqual(self.request('/api/receipt/'+order['id'],cookie=self.login('gerencia'))[0],200)
         self.action(cookie,'close',physical=136)
-        self.assertEqual(self.state(cookie)['closures'][0]['expected'],136)
+        self.assertNotIn('expected',self.state(cookie)['closures'][0])
+        self.assertEqual(self.state(self.login('contabilidad'))['closures'][0]['expected'],136)
+        self.assertEqual(self.request('/api/receipt/'+order['id'],cookie=cookie)[0],403)
         self.action(cookie,'ticket_checkout',400,requestId='new-after-close',lines=lines)
         self.assertTrue(self.action(cookie,'ticket_checkout',requestId='test-checkout-01',lines=lines)['repeated'])
     def test_ticket_basket_validation_is_atomic(self):
