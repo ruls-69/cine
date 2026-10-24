@@ -1,0 +1,53 @@
+/* CINe / público · adaptación editorial del rediseño 2026-10-24.
+   Solo afecta la web pública; no modifica el panel operativo. */
+:root{--bg:#faf7ef;--panel:#fffdfa;--surface-raised:#f1eaf6;--surface-hover:#eee7f7;
+ --text:#22213b;--muted:#646276;--subtle:#797888;--line:#d9d4de;--accent:#7155b5;
+ --accent-hover:#57349f;--accent-soft:#ece5f7;--on-accent:#fff;--font-display:'DM Serif Display',Georgia,serif}
+body{background:#faf7ef;color:#26223f}
+.site-header{background:#faf7efed;border-bottom:1px solid #dbd3e1;backdrop-filter:blur(14px)}
+.brand span,.brand strong{color:#362653!important}
+.main-nav a,.location-button select,.hero-branch-note,.hero-meta{color:#373046}
+.button-primary{background:#6f4db7;color:#fff;border-color:#6f4db7;border-radius:40px}
+.button-outline{color:#6542a8;border-color:#6542a8;border-radius:40px}
+.hero{isolation:isolate;min-height:580px;background:linear-gradient(135deg,#faf7ef,#f1eafb 65%,#e8f7f5);overflow:hidden}
+.hero-backdrop{background:radial-gradient(ellipse at 75% 50%,#cbb8ef66,transparent 55%);mask-image:none}
+.hero h1{color:#302354;font-family:var(--font-display);font-weight:400;letter-spacing:-.04em;font-size:clamp(56px,7vw,108px);line-height:.95}
+.hero h1 em{color:#7752b6}
+.hero-copy{color:#554969}
+.hero-trailers{border-radius:22px;overflow:hidden;border:1px solid #dccce8;background:#242038;box-shadow:0 28px 90px #4f368b22}
+.trailer-caption{color:#f5eefc}
+.hero-meta{color:#746583}
+.showtimes{padding-top:100px;padding-bottom:110px}
+.section-intro h2,.candy h2,.experience-content h2,.cinema-content h2{font-family:var(--font-display);font-weight:400;letter-spacing:-.035em}
+.section-intro h2{color:#302354;font-size:clamp(42px,5vw,80px)}
+.eyebrow{color:#7857ba;letter-spacing:.19em}
+.catalog-summary,.carousel-footer,.section-note{color:#655d77}
+.date-picker button{border-radius:14px}
+.date-card.selected{background:#7352b6;color:#fff;border-color:#7352b6}
+.movie-carousel{perspective:1100px}
+.movie-card{border:1px solid #ddd4e6;border-radius:20px;background:#fffefa;box-shadow:0 22px 50px #3b24621a;overflow:hidden}
+.movie-card.position-center{transform:translateX(0) rotateY(0deg) scale(1)}
+.movie-card.position-left{transform:translateX(-65%) rotateY(24deg) scale(.82)}
+.movie-card.position-right{transform:translateX(65%) rotateY(-24deg) scale(.82)}
+.movie-copy{color:#2c2641}
+.movie-copy p{color:#766c80}
+.showtime-trigger,.carousel-arrow{color:#6847a6;border-color:#cbb9e6}
+.experience-banner{background:#2e2451;color:#fff}
+.experience-content h2,.experience-content p{color:#f8f1fd}
+.candy{background:#e9dfff;color:#382750}
+.candy h2{color:#3b2e62}
+.candy .section-note,.candy .combo-list p{color:#514768}
+.combo-list .web-combo{display:grid;grid-template-columns:1fr auto;align-items:center;gap:20px;padding:21px 0;border-bottom:1px solid #bcacd5}
+.web-combo>div{display:grid;grid-template-columns:72px 1fr;column-gap:14px;align-items:center}
+.web-combo img{grid-row:span 3;width:72px;height:72px;object-fit:cover;border-radius:12px}
+.web-combo h3,.web-combo p,.web-combo strong{grid-column:2}
+.web-combo:not(:has(img)) h3,.web-combo:not(:has(img)) p,.web-combo:not(:has(img)) strong{grid-column:1}
+.web-combo strong{font-weight:700;color:#624297}
+.web-combo button{border-radius:28px;background:#6f50ae;color:white;padding:12px 16px;border:0}
+.cinema-info{padding-top:120px;padding-bottom:120px}
+.cinema-content h2{color:#3b2f66}
+.cinema-socials{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.cinema-socials a{border:1px solid #baa7da;border-radius:30px;padding:12px 18px;color:#6a45a7;text-decoration:none;font-weight:600}
+.site-footer{border-top:1px solid #dfd8e6}
+@media(max-width:780px){.hero{min-height:unset;padding-top:70px}.hero h1{font-size:clamp(53px,14vw,80px)}.showtimes{padding-top:65px;padding-bottom:70px}.web-combo{grid-template-columns:1fr!important}.web-combo button{justify-self:start}.cinema-info{padding-top:70px;padding-bottom:70px}}
+@media(prefers-reduced-motion:reduce){.movie-card,.movie-card.position-center,.movie-card.position-left,.movie-card.position-right{transition:none}}
