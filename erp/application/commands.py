@@ -1,5 +1,5 @@
 """Authorized command orchestration over an in-memory transaction snapshot."""
-from erp.modules.catalog import domain as cinema, trailers
+from erp.modules.catalog import domain as cinema, trailers, social
 from erp.modules.ticketing import domain as ticketing
 from erp.modules.candy import domain as candy
 from erp.modules.cash import domain as cash, operations as closing
@@ -16,6 +16,9 @@ def mutate(state,user,action,data,*,now,today,uid,branches,biometric_reader,rese
     allowed={'payroll_import':['accounting'],'candy_checkout':['candy'],'candy_void_request':['candy'],'candy_void_review':['accounting'],'cash_open':['ticketing','candy'],'cash_void':['accounting'],'cash_movement':['ticketing','candy'],'ticket_checkout':['ticketing'],'sell':['ticketing','candy'],'show':['manager'],'report':['administrator'],'review':['accounting'],'product':['accounting'],'stock':['accounting'],'audit_start':['accounting'],'audit_save':['accounting'],'audit_finish':['accounting'],'close':['ticketing','candy'],'close_review':['accounting']}
     for name in ['payroll_delete','payroll_reopen','payroll_role','payroll_employee','payroll_extra','payroll_extra_void','payroll_calculate','payroll_validate','payroll_mail_update','payroll_mail_authorize','payroll_mail_revoke','payroll_mail_create','payroll_mail_dispatch','payroll_attendance_credit','payroll_attendance_void']:allowed[name]=['accounting']
     for name in ['trailer_save','room_save','movie_save','schedule','show_cancel','trailer_delete','movie_delete','room_delete','show_delete']: allowed[name]=['manager']
+    allowed['social_links_save']=['manager']
+    allowed['combo_save']=['accounting']
+    allowed['combo_delete']=['accounting']
     for name in ('user_create','user_disable','user_enable','user_reset_password'): allowed[name]=['accounting']
     require(role in allowed.get(action,[]),'Tu rol no permite esta operación.'); result={}
     before_sales={s['id'] for s in state['sales']}
@@ -34,6 +37,8 @@ def mutate(state,user,action,data,*,now,today,uid,branches,biometric_reader,rese
     elif action=='movie_save': result=cinema.movie_save(state,branch,data)
     elif action in ['schedule','show']: result=cinema.schedule(state,branch,data,today())
     elif action=='show_cancel': result=cinema.cancel_show(state,branch,data)
+    elif action=='social_links_save': result=social.save(state,user,data,branch,now=now,uid=uid)
+    elif action in ('combo_save','combo_delete'): result=trailers.combo_save(state,user,action,data,branch,now=now,uid=uid)
     elif action=='trailer_save':
         result=trailers.save(state,user,action,data,branch,now=now,uid=uid)
     elif action=='sell':
