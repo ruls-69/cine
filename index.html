@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="styles.css?v=sala-1"><link rel="stylesheet" href="public-editorial.css?v=pr18">
 </head>
 <body>
-  <a class="skip-link" href="#cartelera">Ir a la cartelera</a>
+  <div class="reading-progress" aria-hidden="true"></div><a class="skip-link" href="#cartelera">Ir a la cartelera</a>
   <header class="site-header">
     <a class="brand" href="#inicio" aria-label="Multicine Universal, inicio"><img class="official-logo" src="assets/logo-multicine-universal.png" alt="" width="44" height="52"><span>MULTICINE<strong>UNIVERSAL</strong></span></a>
     <nav class="main-nav" aria-label="Navegación principal"><a class="active" href="#cartelera">Cartelera</a><a href="#experiencias">Experiencias</a><a href="#candy">Candy bar</a><a href="#cine">Nuestro cine</a></nav>
@@ -22,15 +22,15 @@
     <nav class="mobile-nav" id="mobile-navigation" aria-label="Navegación móvil" inert><a href="#cartelera">Cartelera</a><a href="#experiencias">Experiencias</a><a href="#candy">Candy bar</a><a href="#cine">Nuestro cine</a></nav>
   </header>
   <main id="inicio">
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-backdrop" aria-hidden="true"></div>
+    <section class="hero hero-original" aria-labelledby="hero-title">
+      
       <div class="hero-content">
         <h1 id="hero-title">Nos vemos<br><em>en el cine.</em></h1>
         <p class="hero-copy">Historias grandes, pantalla grande y un buen plan.</p>
         <div class="hero-actions"><a class="button button-primary" href="#cartelera">Elegir mi función <span aria-hidden="true">→</span></a><span class="hero-branch-note">Cartelera de <strong data-branch-name>Potosí</strong></span></div><button class="hero-featured" id="featuredMovie" type="button" hidden></button>
       </div>
-      <section class="hero-trailers" id="trailers" aria-label="Tráileres de películas"><div class="trailer-caption">Próximas historias <span>Tráileres</span></div><div class="trailer-screen" id="trailer-screen"><div class="trailer-placeholder"><p>Cargando próximas historias…</p></div></div></section>
-      <div class="hero-meta"><span>Multicine Universal · <b data-branch-name>Potosí</b></span><button class="hero-next" type="button">Explorar cartelera <span aria-hidden="true">↓</span></button></div>
+      <div class="hero-art aperture"><div id="hero-posters" class="hero-posters" hidden></div></div>
+      <div class="hero-meta"><button class="motion-toggle" type="button" aria-pressed="true">Pausar animación</button><span>Multicine Universal · <b data-branch-name>Potosí</b></span><button class="hero-next" type="button">Explorar cartelera <span aria-hidden="true">↓</span></button></div>
     </section>
     <section class="showtimes section-wrap" id="cartelera" aria-labelledby="showtimes-title">
       <div class="section-intro"><div><p class="eyebrow" id="catalog-month">Tu próxima función</p><h2 id="showtimes-title">En cartelera</h2></div><p class="catalog-summary" id="catalog-summary" aria-live="polite">Selecciona un día y descubre sus horarios.</p></div>
@@ -39,8 +39,9 @@
       <div class="carousel-footer"><p id="carousel-position" aria-live="polite"></p><span>Elige una película para ver horarios y salas</span></div><div class="carousel-progress" aria-hidden="true"><span></span></div>
     </section>
     <section class="experience-banner" id="experiencias" aria-labelledby="experience-title">
-      <div class="experience-bg" role="img" aria-label="Butacas y luz de proyección en una sala de cine; imagen ilustrativa"></div>
-      <div class="experience-content"><p class="eyebrow">La experiencia</p><h2 id="experience-title">Historias<br>en <em>2D y 3D.</em></h2><p>Consulta en nuestra cartelera los formatos disponibles para cada película y elige cómo quieres vivir tu próxima historia.</p><a class="button button-outline" href="#cartelera">Ver formatos y horarios <span aria-hidden="true">↗</span></a></div>
+      <h2 id="experience-title">Dale play a lo que viene.</h2>
+      <div class="experience-grid"><section class="hero-trailers" id="trailers" aria-label="Tráileres de películas"><div class="trailer-screen" id="trailer-screen"><div class="trailer-placeholder"><p>Cargando próximas historias…</p></div></div><div class="trailer-caption">Próximas historias <span>Tráileres</span></div></section>
+      <div class="experience-content"><h3>Más en cartelera</h3><div id="related-movies" aria-live="polite"></div><a class="related-all" href="#cartelera">Ver toda la cartelera ↗</a></div></div>
     </section>
     <section class="candy" id="candy" aria-labelledby="candy-title">
       <div class="candy-content"><p class="eyebrow">Candy bar</p><h2 id="candy-title">El ritual<br><em>también cuenta.</em></h2><p class="section-note">Consulta los combos, precios y disponibilidad en el Candy bar de tu sucursal.</p><div class="combo-list">
@@ -50,7 +51,7 @@
       </div></div><figure class="candy-photo"><img src="assets/candy-editorial.png" alt="Pipocas y refresco; imagen ilustrativa" loading="lazy" width="1536" height="1024"><figcaption>Imagen ilustrativa · Consulta la presentación en tu cine.</figcaption></figure>
     </section>
     <section class="cinema-info section-wrap" id="cine" aria-labelledby="cinema-title">
-      <div class="cinema-content"><p class="eyebrow">Multicine Universal · <b data-branch-name>Potosí</b></p><h2 id="cinema-title">Nos vemos<br><em>en el cine.</em></h2><p id="cinema-description">Prepara tu próxima visita.</p></div>
+      <div class="cinema-content"><p class="eyebrow">Multicine Universal · <b data-branch-name>Potosí</b></p><h2 id="cinema-title">Nos vemos<br><em>en el cine.</em></h2><p id="cinema-description">Prepara tu próxima visita.</p><div class="cinema-sketch" id="cerro-rico-sketch" aria-hidden="true"></div></div>
       <div class="cinema-contact"><nav class="cinema-socials" id="cinema-socials" aria-label="Redes sociales" hidden></nav><div class="cinema-photo" hidden></div><div class="cinema-details" id="cinema-details"><div><span>ENCUÉNTRANOS</span><strong>Padilla #31<br>Potosí, Bolivia</strong></div><div><span>HORARIOS</span><strong>Lun — Dom<br>10:00 — 22:00</strong></div><div><span>CONTACTO</span><strong>+591 2 6226133</strong></div></div><a class="text-link" id="cinema-map" href="https://www.google.com/maps/dir/?api=1&amp;destination=Padilla+31%2C+Potos%C3%AD%2C+Bolivia&amp;travelmode=driving" target="_blank" rel="noopener noreferrer">Cómo llegar <span aria-hidden="true">↗</span></a></div>
     </section>
   </main>
