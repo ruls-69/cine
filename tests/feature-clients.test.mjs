@@ -25,3 +25,11 @@ test('public catalog encodes branch and validates remote responses',async()=>{
   expect(calls).toEqual(['/api/public/catalog?branch=Potos%C3%AD']);
   await expect(client.trailers('Potosí')).rejects.toThrow();
 });
+
+test('public catalog retains published combo and social link data',async()=>{
+ const client=new PublicCatalogClient(async()=>({ok:true,status:200,json:async()=>({branch:'Potosí',today:'2026-10-24',movies:[],shows:[],combos:[{id:'c1',title:'Combo',description:'Pipocas',price:30,image:'',position:1}],socialLinks:[{platform:'facebook',url:'https://www.facebook.com/cine'}]})}));
+ const catalog=await client.catalog('Potosí');
+ expect(catalog.combos).toHaveLength(1);
+ expect(catalog.combos[0].price).toBe(30);
+ expect(catalog.socialLinks[0].platform).toBe('facebook');
+});
