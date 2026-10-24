@@ -7,7 +7,7 @@ def social_url(platform,value):
     require(platform in HOSTS and (value is None or isinstance(value,str)),'Enlace no válido.')
     url=(value or '').strip()
     if not url:return ''
-    require(len(url)<=2000 and not re.search(r'[\\s\\\\\\x00-\\x1f\\x7f]|%(?:0[0-9a-f]|1[0-9a-f]|7f)',url,re.I),'Enlace inválido.')
+    require(len(url)<=2000 and not any(ch.isspace() or ord(ch)<32 or ord(ch)==127 or ch=='\\' for ch in url) and not re.search(r'%(?:0[0-9a-f]|1[0-9a-f]|7f)',url,re.I),'Enlace inválido.')
     parsed=urlsplit(url)
     host=(parsed.hostname or '').lower()
     require(parsed.scheme=='https' and host in HOSTS[platform] and parsed.username is None and parsed.password is None and parsed.port in (None,443) and parsed.netloc.lower() in (host,host+':443'),'Usa HTTPS oficial de la plataforma.')
