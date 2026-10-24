@@ -9,6 +9,8 @@ def visible(state,user,*,users,mail_configured):
         if collection in ('printJobs','staffAccounts'): continue
         if collection.startswith('payroll') and user['role']!='accounting':continue
         if collection=='trailers' and user['role']!='manager': continue
+        if collection=='webCombos' and user['role'] not in ('accounting','manager'): continue
+        if collection=='webSocialLinks' and user['role']!='manager': continue
         if user['role']=='administrator' and collection in ('sales','orders','candyOrders','cashMovements','cashOpenings','closures'):
             rows=[]
         if user['role']=='administrator' and collection=='log':

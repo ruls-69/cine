@@ -17,6 +17,6 @@ export async function prepareCommand(form: HTMLFormElement, submitter: HTMLEleme
   const input={form,submitter,command};
   if(command.action.startsWith('payroll_')) return preparePayroll(input,ports.confirm);
   if(command.action.startsWith('cash_') || command.action==='close' || command.action==='close_review') return prepareCash(input,ports.confirm);
-  if(['movie_save','trailer_save','room_save','schedule'].includes(command.action)) return prepareCatalog(input,ports);
+  if(['movie_save','trailer_save','room_save','schedule','social_links_save'].includes(command.action)) return prepareCatalog(input,ports);
   return prepareInventory(input,ports.confirm);
 }

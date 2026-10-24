@@ -7,6 +7,18 @@ if([...branchSelect.options].some(o=>o.value===initialBranch))branchSelect.value
 const potosiDetails=q('#cinema-details').innerHTML;
 function branchInfo(){const name=branchSelect.value;document.querySelectorAll('[data-branch-name]').forEach(el=>el.textContent=name);q('#cinema-description').textContent=name==='Potosí'?'Tu próxima visita a Multicine Universal. Encuentra nuestra ubicación y consulta los horarios de cada película en la cartelera.':'Consulta la cartelera de '+name+' y elige tu próxima función. Los datos de ubicación y contacto de esta sucursal se publicarán próximamente.';q('#cinema-details').innerHTML=name==='Potosí'?potosiDetails:'<div><span>SUCURSAL</span><strong>'+esc(name)+', Bolivia</strong></div><div><span>UBICACIÓN Y CONTACTO</span><strong>Próximamente</strong></div>';q('#cinema-map').hidden=name!=='Potosí';q('.cinema-photo').hidden=name!=='Potosí';q('.cinema-info').classList.toggle('branch-contact-pending',name!=='Potosí');}
 
+function renderPublicExtras(){
+ const social=q('#cinema-socials');
+ if(social){
+  const links=(catalog.socialLinks||[]).filter(x=>['facebook','tiktok'].includes(x.platform)&&/^https:\/\//.test(x.url));
+  social.innerHTML=links.map(x=>`<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${x.platform==='facebook'?'Facebook':'TikTok'} ↗</a>`).join('');
+  social.hidden=!links.length;
+ }
+ const combos=q('.combo-list');
+ if(combos){
+  combos.innerHTML=(catalog.combos||[]).map(c=>`<article class="web-combo"><div>${c.image?`<img src="${esc(c.image)}" alt="" loading="lazy" width="72" height="72">`:''}<h3>${esc(c.title)}</h3><p>${esc(c.description)}</p><strong>${money(c.price)}</strong></div><button class="add-combo" data-combo="${esc(c.title)}" type="button">Consultar ↗</button></article>`).join('')||'<p class="muted">Próximamente publicaremos los combos de esta sucursal.</p>';
+ }
+}
 function day(offset){const d=new Date(catalog.today+'T12:00');d.setDate(d.getDate()+offset);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function dates(){q('#catalog-month').textContent=q('#public-branch').value+' · '+new Date(selectedDate+'T12:00').toLocaleDateString('es-BO',{month:'long'});q('.date-picker').innerHTML='<button class="date-arrow" data-week="-1" '+(week===0?'disabled':'')+' aria-label="Semana anterior">←</button>'+Array.from({length:7},(_,i)=>{const iso=day(week*7+i),d=new Date(iso+'T12:00');return '<button class="date-card '+(iso===selectedDate?'selected':'')+'" data-date="'+iso+'" aria-pressed="'+(iso===selectedDate)+'"><small>'+d.toLocaleDateString('es-BO',{weekday:'short'})+'</small><strong>'+d.getDate()+'</strong>'+(iso===catalog.today?'<b>HOY</b>':'')+'</button>';}).join('')+'<button class="date-arrow" data-week="1" aria-label="Semana siguiente">→</button>';}
 function carousel(){const cards=[...document.querySelectorAll('.movie-card')],n=cards.length;cards.forEach((c,i)=>{let o=i-index;if(o>Math.floor(n/2))o-=n;if(o<-Math.floor(n/2))o+=n;c.className='movie-card '+(o===0?'position-center':o===-1?'position-left':o===1?'position-right':'is-hidden');c.inert=Math.abs(o)>1;c.setAttribute('aria-hidden',String(Math.abs(o)>1));});q('.carousel-progress span').style.width=n?((index+1)/n*100)+'%':'0';q('#carousel-position').textContent=n?String(index+1).padStart(2,'0')+' / '+String(n).padStart(2,'0'):'';document.querySelectorAll('.carousel-arrow').forEach(b=>b.disabled=n<2);}
@@ -31,7 +43,7 @@ function catalogFocus(){
  return '';
 }
 function resetCatalog(){
- catalog={movies:[],shows:[]};catalogSignature='';q('#featuredMovie').hidden=true;
+ catalog={movies:[],shows:[]};catalogSignature='';renderPublicExtras();q('#featuredMovie').hidden=true;
  q('.date-picker').innerHTML='';q('#catalog-month').textContent=branchSelect.value+' · Cartelera';
  q('#catalog-summary').textContent='Consultando horarios de esta sucursal…';
  q('.movie-track').innerHTML='<div class="catalog-loading" role="status">Cargando cartelera…</div>';carousel();
@@ -43,10 +55,10 @@ async function load(){
   const signature=JSON.stringify(data);if(signature===catalogSignature)return;
   const focus=catalogFocus();catalog=data;catalogSignature=signature;
   if(!selectedDate||selectedDate<catalog.today)selectedDate=catalog.today;
-  dates();cards();if(openMovie)fillModal();
+  dates();cards();renderPublicExtras();if(openMovie)fillModal();
   if(focus)q(focus)?.focus({preventScroll:true});
  }catch{
-  if(version!==request)return;catalogSignature='';q('#featuredMovie').hidden=true;
+  if(version!==request)return;catalogSignature='';catalog={movies:[],shows:[]};renderPublicExtras();q('#featuredMovie').hidden=true;
   q('#catalog-summary').textContent='No pudimos actualizar los horarios. Vuelve a intentarlo.';
   q('.movie-track').innerHTML='<div class="catalog-empty" role="status"><p>No pudimos cargar la cartelera.</p><button id="catalogRetry" type="button">Reintentar</button></div>';
   if(openMovie)q('.public-functions').textContent='No pudimos actualizar la disponibilidad.';

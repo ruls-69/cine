@@ -5223,6 +5223,16 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 			q(".cinema-photo").hidden = name !== "Potosí";
 			q(".cinema-info").classList.toggle("branch-contact-pending", name !== "Potosí");
 		}
+		function renderPublicExtras() {
+			const social = q("#cinema-socials");
+			if (social) {
+				const links = (catalog.socialLinks || []).filter((x) => ["facebook", "tiktok"].includes(x.platform) && /^https:\/\//.test(x.url));
+				social.innerHTML = links.map((x) => `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${x.platform === "facebook" ? "Facebook" : "TikTok"} ↗</a>`).join("");
+				social.hidden = !links.length;
+			}
+			const combos = q(".combo-list");
+			if (combos) combos.innerHTML = (catalog.combos || []).map((c) => `<article class="web-combo"><div>${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" width="72" height="72">` : ""}<h3>${esc(c.title)}</h3><p>${esc(c.description)}</p><strong>${money(c.price)}</strong></div><button class="add-combo" data-combo="${esc(c.title)}" type="button">Consultar ↗</button></article>`).join("") || "<p class=\"muted\">Próximamente publicaremos los combos de esta sucursal.</p>";
+		}
 		function day(offset) {
 			const d = /* @__PURE__ */ new Date(catalog.today + "T12:00");
 			d.setDate(d.getDate() + offset);
@@ -5312,6 +5322,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 				shows: []
 			};
 			catalogSignature = "";
+			renderPublicExtras();
 			q("#featuredMovie").hidden = true;
 			q(".date-picker").innerHTML = "";
 			q("#catalog-month").textContent = branchSelect.value + " · Cartelera";
@@ -5334,11 +5345,17 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 				if (!selectedDate || selectedDate < catalog.today) selectedDate = catalog.today;
 				dates();
 				cards();
+				renderPublicExtras();
 				if (openMovie) fillModal();
 				if (focus) q(focus)?.focus({ preventScroll: true });
 			} catch {
 				if (version !== request) return;
 				catalogSignature = "";
+				catalog = {
+					movies: [],
+					shows: []
+				};
+				renderPublicExtras();
 				q("#featuredMovie").hidden = true;
 				q("#catalog-summary").textContent = "No pudimos actualizar los horarios. Vuelve a intentarlo.";
 				q(".movie-track").innerHTML = "<div class=\"catalog-empty\" role=\"status\"><p>No pudimos cargar la cartelera.</p><button id=\"catalogRetry\" type=\"button\">Reintentar</button></div>";
