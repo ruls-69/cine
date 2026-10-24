@@ -8,6 +8,7 @@ on:
       - refactor/cine-integral-audit-20261022
       - feat/cash-blind-operations-20261022
       - feat/public-redesign-web-combos-social-pr18
+      - fix/public-combos-social-contract-pr19
   pull_request:
     paths:
       - 'src/**'
