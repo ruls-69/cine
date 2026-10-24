@@ -111,7 +111,7 @@ em { color: var(--accent); font-style: italic; }
 .hero-trailers { min-width: 0; }
 .trailer-screen { position: relative; aspect-ratio: 16/9; background: #131722; overflow: hidden; }
 .trailer-screen iframe { width: 100%; height: 100%; display: block; border: 0; }
-.trailer-placeholder { display: grid; place-items: center; text-align: center; padding: 25px; height: 100%; color: white; background: linear-gradient(#0005,#0005),url('assets/hero-immersive.png') center/cover; }
+.trailer-placeholder { display: grid; place-items: center; text-align: center; padding: 25px; height: 100%; color: white; background: linear-gradient(#0005,#0005),url('assets/cinema-atmosphere.png') center/cover; }
 .trailer-placeholder p { max-width: 300px; }
 .trailer-caption { display: flex; justify-content: space-between; gap: 20px; font-size: 11px; color: var(--muted); padding-top: 12px; }
 .trailer-sound { position: absolute; right: 10px; bottom: 10px; min-height: 44px; background: #18151ef2; border: 1px solid #756e7c; color: white; padding: 8px 14px; font-size: 12px; border-radius: 3px; }
