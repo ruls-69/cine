@@ -3,7 +3,13 @@ import type { HttpTransport } from '../../shared/application/http-port';
 
 const movieSchema=z.looseObject({id:z.string(),title:z.string(),poster:z.string(),genre:z.string(),rating:z.string(),duration:z.number()});
 const showSchema=z.looseObject({id:z.string(),movieId:z.string(),room:z.string(),date:z.string(),time:z.string(),format:z.string(),price:z.number(),available:z.number(),seatsPerTicket:z.number()});
-export const catalogSchema=z.object({branch:z.string(),today:z.string(),movies:z.array(movieSchema),shows:z.array(showSchema)});
+const comboSchema=z.object({id:z.string(),title:z.string(),description:z.string(),price:z.number(),image:z.string(),position:z.number()});
+const socialLinkSchema=z.object({platform:z.enum(['facebook','tiktok']),url:z.url().startsWith('https://')});
+export const catalogSchema=z.object({
+  branch:z.string(),today:z.string(),movies:z.array(movieSchema),shows:z.array(showSchema),
+  combos:z.array(comboSchema).default([]),
+  socialLinks:z.array(socialLinkSchema).default([]),
+});
 export const trailersSchema=z.object({branch:z.string(),trailers:z.array(z.object({id:z.string(),title:z.string(),videoId:z.string(),position:z.number()}))});
 export type PublicCatalog = z.infer<typeof catalogSchema>;
 export type PublicTrailers = z.infer<typeof trailersSchema>;

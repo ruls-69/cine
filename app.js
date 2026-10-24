@@ -4669,6 +4669,9 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 		$ZodURL.init(inst, def);
 		ZodStringFormat.init(inst, def);
 	});
+	function url(params) {
+		return _url(ZodURL, params);
+	}
 	const ZodEmoji = /*@__PURE__*/ $constructor("ZodEmoji", (inst, def) => {
 		$ZodEmoji.init(inst, def);
 		ZodStringFormat.init(inst, def);
@@ -5167,11 +5170,25 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 		available: number(),
 		seatsPerTicket: number()
 	});
+	const comboSchema = object({
+		id: string(),
+		title: string(),
+		description: string(),
+		price: number(),
+		image: string(),
+		position: number()
+	});
+	const socialLinkSchema = object({
+		platform: _enum(["facebook", "tiktok"]),
+		url: url().startsWith("https://")
+	});
 	const catalogSchema = object({
 		branch: string(),
 		today: string(),
 		movies: array(movieSchema),
-		shows: array(showSchema)
+		shows: array(showSchema),
+		combos: array(comboSchema).default([]),
+		socialLinks: array(socialLinkSchema).default([])
 	});
 	const trailersSchema = object({
 		branch: string(),
