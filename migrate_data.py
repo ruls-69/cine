@@ -22,6 +22,8 @@ REQUIRED_FIELDS = {
     'closures': 'user day at expected physical difference status',
     'log': 'user at action',
     'trailers': 'title videoId position published',
+    'webCombos': 'title description price image position published',
+    'webSocialLinks': 'platform url published',
     'rooms': 'name capacity active',
     'movies': 'title duration genre rating poster position published',
     'orders': 'user day at requestId lines total',
