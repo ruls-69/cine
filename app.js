@@ -5250,6 +5250,21 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 			const combos = q(".combo-list");
 			if (combos) combos.innerHTML = (catalog.combos || []).map((c) => `<article class="web-combo"><div>${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" width="72" height="72">` : ""}<h3>${esc(c.title)}</h3><p>${esc(c.description)}</p><strong>${money(c.price)}</strong></div><button class="add-combo" data-combo="${esc(c.title)}" type="button">Consultar ↗</button></article>`).join("") || "<p class=\"muted\">Próximamente publicaremos los combos de esta sucursal.</p>";
 		}
+		function heroPosters() {
+			const root = q("#hero-posters");
+			if (!root) return;
+			const movies = (catalog.movies || []).filter((m) => m.poster).slice(0, 3);
+			root.hidden = !movies.length;
+			root.dataset.count = String(movies.length);
+			root.innerHTML = movies.map((m, i) => `<button class="hero-poster hero-poster--${i}" type="button" data-movie="${esc(m.id)}" aria-label="Ver horarios de ${esc(m.title)}"><img src="${esc(m.poster)}" alt="" decoding="async" width="280" height="420"><span>${esc(m.title)}</span></button>`).join("");
+			window.UniversalUI.enhance(root);
+		}
+		function relatedMovies() {
+			const node = q("#related-movies");
+			if (!node) return;
+			node.innerHTML = (catalog.movies || []).slice(0, 3).map((m) => `<button class="related-movie" data-movie="${esc(m.id)}" type="button">${m.poster ? `<img src="${esc(m.poster)}" alt="" width="110" height="70" loading="lazy">` : ""}<span><strong>${esc(m.title)}</strong><small>Ver horarios · ${m.duration} min</small></span>↗</button>`).join("");
+			window.UniversalUI.enhance(node);
+		}
 		function day(offset) {
 			const d = /* @__PURE__ */ new Date(catalog.today + "T12:00");
 			d.setDate(d.getDate() + offset);
@@ -5334,6 +5349,8 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 			return "";
 		}
 		function resetCatalog() {
+			if (q("#hero-posters")) q("#hero-posters").hidden = true;
+			if (q("#related-movies")) q("#related-movies").replaceChildren();
 			catalog = {
 				movies: [],
 				shows: []
@@ -5363,6 +5380,8 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 				dates();
 				cards();
 				renderPublicExtras();
+				heroPosters();
+				relatedMovies();
 				if (openMovie) fillModal();
 				if (focus) q(focus)?.focus({ preventScroll: true });
 			} catch {
@@ -5501,8 +5520,63 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 	}
 
 //#endregion
+//#region src/modules/catalog/motion.js
+/** Public-only motion; never alters business state. */
+	function startCinemaMotion() {
+		const button = document.querySelector(".motion-toggle");
+		const preference = matchMedia("(prefers-reduced-motion: reduce)");
+		let paused = preference.matches;
+		const sync = () => {
+			document.body.classList.toggle("motion-paused", paused);
+			if (button) {
+				button.disabled = preference.matches;
+				button.textContent = preference.matches ? "Movimiento reducido" : paused ? "Activar animación" : "Pausar animación";
+				button.setAttribute("aria-pressed", String(!paused));
+			}
+		};
+		button?.addEventListener("click", () => {
+			paused = !paused;
+			sync();
+		});
+		preference.addEventListener("change", () => {
+			paused = preference.matches;
+			sync();
+		});
+		sync();
+		const reveal = document.querySelectorAll(".section-intro,.experience-content,.candy-content,.cinema-content,.cinema-contact");
+		if ("IntersectionObserver" in window) {
+			const observer = new IntersectionObserver((entries) => {
+				for (const entry of entries) if (entry.isIntersecting) {
+					entry.target.classList.add("is-revealed");
+					observer.unobserve(entry.target);
+				}
+			}, { threshold: .12 });
+			for (const item of reveal) {
+				item.classList.add("reveal");
+				observer.observe(item);
+			}
+		} else for (const item of reveal) item.classList.add("is-revealed");
+		let pending = false;
+		const draw = () => {
+			const progress = document.querySelector(".reading-progress");
+			const max = document.documentElement.scrollHeight - innerHeight;
+			if (progress) progress.style.transform = `scaleX(${max > 0 ? scrollY / max : 0})`;
+			pending = false;
+		};
+		window.addEventListener("scroll", () => {
+			if (!pending) {
+				pending = true;
+				requestAnimationFrame(draw);
+			}
+		}, { passive: true });
+		window.addEventListener("resize", draw);
+		draw();
+	}
+
+//#endregion
 //#region src/app/public.js
 	startPublicCatalog(new PublicCatalogClient((url, init) => fetch(url, init)));
+	startCinemaMotion();
 
 //#endregion
 })();
