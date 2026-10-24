@@ -5226,7 +5226,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 		let catalog = {
 			movies: [],
 			shows: []
-		}, selectedDate = "", week = 0, index = 0, openMovie = "", returnFocus, request = 0, carouselPaused = false, catalogSignature = "";
+		}, selectedDate = "", week = 0, index = 0, openMovie = "", returnFocus, request = 0, carouselPaused = false, catalogSignature = "", comboToastTimer;
 		const modal = q(".modal");
 		const branchSelect = q("#public-branch"), initialBranch = new URL(location.href).searchParams.get("branch") || q("#trailer-screen").dataset.initialBranch;
 		if ([...branchSelect.options].some((o) => o.value === initialBranch)) branchSelect.value = initialBranch;
@@ -5384,6 +5384,13 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 		document.addEventListener("click", (e) => {
 			const b = e.target.closest("button");
 			if (!b) return;
+			if (b.classList.contains("add-combo")) {
+				q(".toast-text").textContent = "Consulta " + b.dataset.combo + ", su precio y disponibilidad en Candy bar de " + branchSelect.value + ".";
+				q(".toast").classList.add("visible");
+				clearTimeout(comboToastTimer);
+				comboToastTimer = setTimeout(() => q(".toast").classList.remove("visible"), 3500);
+				return;
+			}
 			if (b.id === "catalogRetry") {
 				load();
 				return;
@@ -5465,11 +5472,6 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 			q(".mobile-nav").inert = true;
 		}));
 		q(".toast button").addEventListener("click", () => q(".toast").classList.remove("visible"));
-		document.querySelectorAll(".add-combo").forEach((b) => b.addEventListener("click", () => {
-			q(".toast-text").textContent = "Consulta " + b.dataset.combo + ", su precio y disponibilidad en Candy bar de " + branchSelect.value + ".";
-			q(".toast").classList.add("visible");
-			setTimeout(() => q(".toast").classList.remove("visible"), 3500);
-		}));
 		load();
 		window.addEventListener("storage", (e) => {
 			if (e.key === "cinema-content-updated") load();
