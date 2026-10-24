@@ -30,3 +30,26 @@ def save(state,user,action,data,branch,*,now,uid):
             item=dict(id=uid(),branch=branch,**values);rows.append(item)
         result={'trailer':item['id']}
     return result
+
+def combo_save(state,user,action,data,branch,*,now,uid):
+    rows=state.setdefault('webCombos',[])
+    item=find(state,'webCombos',data['id']) if data.get('id') else None
+    require(not item or (item['branch']==branch and not item.get('deleted')),'Combo no disponible en esta sucursal.')
+    if action=='combo_delete':
+        require(item is not None,'Selecciona un combo.')
+        item.update(deleted=True,updated=now(),editor=user['id'])
+        return {'combo':item['id']}
+    require(data.get('published') in ('yes','no'),'Estado de publicación inválido.')
+    image=str(data.get('image') or '').strip()
+    parsed=urlparse(image)
+    require(not image or (parsed.scheme=='https' and parsed.hostname and not parsed.username and not parsed.password and len(image)<=2000),'La imagen debe ser un enlace HTTPS directo.')
+    values=dict(title=text_value(data.get('title'),80),
+        description=text_value(data.get('description'),300),
+        price=number(data.get('price')),image=image,
+        position=number(data.get('position'),1,True),
+        published=data['published']=='yes',updated=now(),editor=user['id'])
+    if item:item.update(values)
+    else:
+        require(len([r for r in rows if r['branch']==branch and not r.get('deleted')])<50,'Máximo 50 combos por sucursal.')
+        item=dict(id=uid(),branch=branch,**values);rows.append(item)
+    return {'combo':item['id']}
