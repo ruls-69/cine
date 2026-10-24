@@ -19,6 +19,18 @@ function renderPublicExtras(){
   combos.innerHTML=(catalog.combos||[]).map(c=>`<article class="web-combo"><div>${c.image?`<img src="${esc(c.image)}" alt="" loading="lazy" width="72" height="72">`:''}<h3>${esc(c.title)}</h3><p>${esc(c.description)}</p><strong>${money(c.price)}</strong></div><button class="add-combo" data-combo="${esc(c.title)}" type="button">Consultar ↗</button></article>`).join('')||'<p class="muted">Próximamente publicaremos los combos de esta sucursal.</p>';
  }
 }
+function heroPosters(){
+ const root=q('#hero-posters');if(!root)return;
+ const movies=(catalog.movies||[]).filter(m=>m.poster).slice(0,3);
+ root.hidden=!movies.length;root.dataset.count=String(movies.length);
+ root.innerHTML=movies.map((m,i)=>`<button class="hero-poster hero-poster--${i}" type="button" data-movie="${esc(m.id)}" aria-label="Ver horarios de ${esc(m.title)}"><img src="${esc(m.poster)}" alt="" decoding="async" width="280" height="420"><span>${esc(m.title)}</span></button>`).join('');
+ window.UniversalUI.enhance(root);
+}
+function relatedMovies(){
+ const node=q('#related-movies');if(!node)return;
+ node.innerHTML=(catalog.movies||[]).slice(0,3).map(m=>`<button class="related-movie" data-movie="${esc(m.id)}" type="button">${m.poster?`<img src="${esc(m.poster)}" alt="" width="110" height="70" loading="lazy">`:''}<span><strong>${esc(m.title)}</strong><small>Ver horarios · ${m.duration} min</small></span>↗</button>`).join('');
+ window.UniversalUI.enhance(node);
+}
 function day(offset){const d=new Date(catalog.today+'T12:00');d.setDate(d.getDate()+offset);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function dates(){q('#catalog-month').textContent=q('#public-branch').value+' · '+new Date(selectedDate+'T12:00').toLocaleDateString('es-BO',{month:'long'});q('.date-picker').innerHTML='<button class="date-arrow" data-week="-1" '+(week===0?'disabled':'')+' aria-label="Semana anterior">←</button>'+Array.from({length:7},(_,i)=>{const iso=day(week*7+i),d=new Date(iso+'T12:00');return '<button class="date-card '+(iso===selectedDate?'selected':'')+'" data-date="'+iso+'" aria-pressed="'+(iso===selectedDate)+'"><small>'+d.toLocaleDateString('es-BO',{weekday:'short'})+'</small><strong>'+d.getDate()+'</strong>'+(iso===catalog.today?'<b>HOY</b>':'')+'</button>';}).join('')+'<button class="date-arrow" data-week="1" aria-label="Semana siguiente">→</button>';}
 function carousel(){const cards=[...document.querySelectorAll('.movie-card')],n=cards.length;cards.forEach((c,i)=>{let o=i-index;if(o>Math.floor(n/2))o-=n;if(o<-Math.floor(n/2))o+=n;c.className='movie-card '+(o===0?'position-center':o===-1?'position-left':o===1?'position-right':'is-hidden');c.inert=Math.abs(o)>1;c.setAttribute('aria-hidden',String(Math.abs(o)>1));});q('.carousel-progress span').style.width=n?((index+1)/n*100)+'%':'0';q('#carousel-position').textContent=n?String(index+1).padStart(2,'0')+' / '+String(n).padStart(2,'0'):'';document.querySelectorAll('.carousel-arrow').forEach(b=>b.disabled=n<2);}
@@ -42,7 +54,7 @@ function catalogFocus(){
  }
  return '';
 }
-function resetCatalog(){
+function resetCatalog(){if(q('#hero-posters'))q('#hero-posters').hidden=true;if(q('#related-movies'))q('#related-movies').replaceChildren();
  catalog={movies:[],shows:[]};catalogSignature='';renderPublicExtras();q('#featuredMovie').hidden=true;
  q('.date-picker').innerHTML='';q('#catalog-month').textContent=branchSelect.value+' · Cartelera';
  q('#catalog-summary').textContent='Consultando horarios de esta sucursal…';
@@ -55,7 +67,7 @@ async function load(){
   const signature=JSON.stringify(data);if(signature===catalogSignature)return;
   const focus=catalogFocus();catalog=data;catalogSignature=signature;
   if(!selectedDate||selectedDate<catalog.today)selectedDate=catalog.today;
-  dates();cards();renderPublicExtras();if(openMovie)fillModal();
+  dates();cards();renderPublicExtras();heroPosters();relatedMovies();if(openMovie)fillModal();
   if(focus)q(focus)?.focus({preventScroll:true});
  }catch{
   if(version!==request)return;catalogSignature='';catalog={movies:[],shows:[]};renderPublicExtras();q('#featuredMovie').hidden=true;
