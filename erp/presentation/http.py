@@ -138,7 +138,7 @@ class HttpHandler(SimpleHTTPRequestHandler):
                 document=document.replace('<div class="trailer-placeholder"><p>Cargando próximas historias…</p></div>',frame)
                 document=document.replace('id="trailer-screen"','id="trailer-screen" data-initial-branch="'+escape(chosen,quote=True)+'" data-initial-videos="'+escape(','.join(t['videoId'] for t in videos),quote=True)+'"')
             body=document.encode('utf-8');self.send_response(200);self.send_header('Content-Type','text/html; charset=utf-8');self.send_header('Referrer-Policy','strict-origin-when-cross-origin');self.send_header('Cache-Control','no-store');self.end_headers();self.write_body(body);return
-        if path not in ['/admin.html','/admin.css','/design-tokens.css','/pos.css','/payroll.css','/ui.js','/reports.css','/admin.js','/index.html','/styles.css','/public-editorial.css','/app.js','/trailers.js','/assets/logo-multicine-universal.png','/assets/cinema-atmosphere.png','/assets/candy-editorial.png']: return self.send_error(404)
+        if path not in ['/admin.html','/admin.css','/design-tokens.css','/pos.css','/payroll.css','/ui.js','/reports.css','/admin.js','/index.html','/styles.css','/public-editorial.css','/assets/logo-prisma.png','/assets/logo-prisma-light.png','/assets/hero-immersive.png','/assets/candy-pop.png','/assets/cerro-rico-sketch.png','/app.js','/trailers.js','/assets/logo-multicine-universal.png','/assets/cinema-atmosphere.png','/assets/candy-editorial.png']: return self.send_error(404)
         return super().do_GET()
     def do_POST(self):
         path=urlparse(self.path).path
